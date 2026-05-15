@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#111827" />
+  <title>DS5 Bridge Config</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Segoe UI', system-ui, sans-serif; }
+    input[type=range] { accent-color: #3b82f6; }
+    .card { background: #1f2937; border: 1px solid #374151; border-radius: 12px; }
+    .badge { font-size: 0.7rem; padding: 2px 7px; border-radius: 99px; font-weight: 600; }
+    select { background: #111827; border: 1px solid #374151; color: #f9fafb; border-radius: 6px; padding: 4px 8px; width: 100%; }
+    select:focus { outline: 2px solid #3b82f6; }
+    .toggle { position: relative; width: 44px; height: 24px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle .slider { position: absolute; inset: 0; background: #374151; border-radius: 24px; cursor: pointer; transition: .2s; }
+    .toggle .slider:before { content: ""; position: absolute; height: 18px; width: 18px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: .2s; }
+    .toggle input:checked + .slider { background: #3b82f6; }
+    .toggle input:checked + .slider:before { transform: translateX(20px); }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .auto-haptics-section { border: 1px solid #2563eb44; background: #1e3a5f22; border-radius: 12px; }
+    @keyframes pulse-blue { 0%,100%{opacity:1} 50%{opacity:.5} }
+    .connecting { animation: pulse-blue 1.2s infinite; }
+  </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen p-4 md:p-8">
+
+  <div class="max-w-2xl mx-auto space-y-6">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-white">DS5 Bridge Config</h1>
+        <p class="text-gray-400 text-sm mt-0.5">Raspberry Pi Pico 2 W — Auto Haptics Edition</p>
+      </div>
+      <button id="btnConnect"
+        class="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm transition-colors">
+        <span id="connectIcon">⚡</span>
+        <span id="connectLabel">Connect</span>
+      </button>
+    </div>
+
+    <!-- Status bar -->
+    <div id="statusBar" class="card px-4 py-3 flex items-center gap-3 text-sm hidden">
+      <span class="status-dot bg-green-400"></span>
+      <span id="statusText" class="text-gray-300"></span>
+    </div>
+
+    <!-- Notice: needs Chrome -->
+    <div class="card px-4 py-3 text-sm text-yellow-300 flex gap-2 items-start" id="chromeNotice">
+      <span>⚠️</span>
+      <span>WebHID requires <strong>Chrome, Edge or Opera</strong>. Firefox and Safari are not supported.</span>
+    </div>
+
+    <!-- === HAPTICS === -->
+    <div class="card p-5 space-y-5">
+      <h2 class="font-semibold text-gray-200 text-base flex items-center gap-2">
+        <span>🎮</span> Haptics & Audio
+      </h2>
+
+      <div class="space-y-2">
+        <div class="flex justify-between text-sm">
+          <label class="text-gray-300">Haptics Gain</label>
+          <span id="val_haptics_gain" class="text-blue-400 font-mono">1.00</span>
+        </div>
+        <input type="range" id="haptics_gain" min="100" max="200" step="1" value="100" class="w-full h-2 rounded-lg cursor-pointer" />
+        <p class="text-xs text-gray-500">Global multiplier for all haptic signals sent to the DualSense [1.0 – 2.0]</p>
+      </div>
+
+      <div class="space-y-2">
+        <div class="flex justify-between text-sm">
+          <label class="text-gray-300">Speaker Volume</label>
+          <span id="val_speaker_volume" class="text-blue-400 font-mono">-100 dB</span>
+        </div>
+        <input type="range" id="speaker_volume" min="-100" max="0" step="1" value="-100" class="w-full h-2 rounded-lg cursor-pointer" />
+        <p class="text-xs text-gray-500">Volume of the DualSense internal speaker [-100 – 0 dB]</p>
+      </div>
+
+      <div class="space-y-2">
+        <div class="flex justify-between text-sm">
+          <label class="text-gray-300">Audio Buffer Length</label>
+          <span id="val_audio_buffer_length" class="text-blue-400 font-mono">64</span>
+        </div>
+        <input type="range" id="audio_buffer_length" min="16" max="128" step="1" value="64" class="w-full h-2 rounded-lg cursor-pointer" />
+        <p class="text-xs text-gray-500">Haptics PCM buffer size sent per BT packet [16 – 128]. Lower = less latency, higher = smoother.</p>
+      </div>
+    </div>
+
+    <!-- === AUTO HAPTICS (NEW) === -->
+    <div class="p-5 space-y-5 auto-haptics-section">
+      <h2 class="font-semibold text-blue-300 text-base flex items-center gap-2">
+        <span>🔊</span> Auto Haptics
+        <span class="badge bg-blue-600 text-white">NEW</span>
+      </h2>
+      <p class="text-xs text-gray-400 -mt-2">Generates rumble from game audio — works even when the game sends no haptic commands.</p>
+
+      <div class="space-y-2">
+        <label class="text-sm text-gray-300">Mode</label>
+        <select id="auto_haptics_enable">
+          <option value="0">0 — Off (native ch3/ch4 only, original behaviour)</option>
+          <option value="1">1 — Mix (native haptics + audio-derived blended)</option>
+          <option value="2" selected>2 — Replace (audio-derived only, recommended)</option>
+        </select>
+        <p class="text-xs text-gray-500">Replace is best when your game sends no haptics. Mix lets native and audio signals coexist.</p>
+      </div>
+
+      <div class="space-y-2">
+        <div class="flex justify-between text-sm">
+          <label class="text-gray-300">Intensity</label>
+          <span id="val_auto_haptics_gain" class="text-blue-400 font-mono">100%</span>
+        </div>
+        <input type="range" id="auto_haptics_gain" min="0" max="200" step="5" value="100" class="w-full h-2 rounded-lg cursor-pointer" />
+        <p class="text-xs text-gray-500">Strength of the audio-derived haptic signal, as a percentage of Haptics Gain [0 – 200%]</p>
+      </div>
+
+      <div class="space-y-2">
+        <label class="text-sm text-gray-300">Low-pass Cutoff</label>
+        <select id="auto_haptics_lowpass">
+          <option value="0">0 — 80 Hz (deep bass only, heavy rumble)</option>
+          <option value="1" selected>1 — 160 Hz (balanced bass, recommended)</option>
+          <option value="2">2 — 250 Hz (extended bass, more detail)</option>
+          <option value="3">3 — 400 Hz (wide bass, maximum detail)</option>
+        </select>
+        <p class="text-xs text-gray-500">The DualSense actuators work best between 30–500 Hz. 160 Hz captures explosions, footsteps and gunshots well.</p>
+      </div>
+    </div>
+
+    <!-- === CONTROLLER === -->
+    <div class="card p-5 space-y-5">
+      <h2 class="font-semibold text-gray-200 text-base flex items-center gap-2">
+        <span>🕹️</span> Controller
+      </h2>
+
+      <div class="space-y-2">
+        <label class="text-sm text-gray-300">Controller Mode</label>
+        <select id="controller_mode">
+          <option value="0">DS5 — DualSense (0x0CE6)</option>
+          <option value="1">DSE — DualSense Edge (0x0DF2)</option>
+          <option value="2" selected>Auto — detect from paired device</option>
+        </select>
+      </div>
+
+      <div class="space-y-2">
+        <label class="text-sm text-gray-300">Polling Rate</label>
+        <select id="polling_rate_mode">
+          <option value="0">250 Hz</option>
+          <option value="1">500 Hz</option>
+          <option value="2">Real-time (1000 Hz)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- === POWER & LED === -->
+    <div class="card p-5 space-y-5">
+      <h2 class="font-semibold text-gray-200 text-base flex items-center gap-2">
+        <span>🔋</span> Power & LED
+      </h2>
+
+      <div class="space-y-2">
+        <div class="flex justify-between text-sm">
+          <label class="text-gray-300">Auto-disconnect Delay</label>
+          <span id="val_inactive_time" class="text-blue-400 font-mono">30 min</span>
+        </div>
+        <input type="range" id="inactive_time" min="5" max="60" step="1" value="30" class="w-full h-2 rounded-lg cursor-pointer" />
+      </div>
+
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-300">Disable Auto-disconnect</p>
+          <p class="text-xs text-gray-500">Keep connected even when idle</p>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="disable_inactive_disconnect" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-300">Disable Pico LED</p>
+          <p class="text-xs text-gray-500">Turn off the onboard LED</p>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="disable_pico_led" />
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Save button -->
+    <div class="flex gap-3">
+      <button id="btnRead"
+        class="flex-1 py-3 rounded-xl bg-gray-700 hover:bg-gray-600 text-white font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        disabled>
+        Read Config
+      </button>
+      <button id="btnSave"
+        class="flex-1 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        disabled>
+        Save to Device
+      </button>
+    </div>
+
+    <p class="text-center text-xs text-gray-600">
+      DS5Dongle Auto Haptics Edition · <a href="https://github.com/awalol/DS5Dongle" class="underline hover:text-gray-400" target="_blank">awalol/DS5Dongle</a>
+    </p>
+  </div>
+
+<script>
+// ─── Constants ───────────────────────────────────────────────────────────────
+const SONY_VID = 0x054C;
+const DS5_PID  = 0x0CE6;
+const DSE_PID  = 0x0DF2;
+
+// Config_body layout (17 bytes LE):
+//  [0:4]  float haptics_gain
+//  [4:8]  float speaker_volume
+//  [8]    uint8 inactive_time
+//  [9]    uint8 disable_inactive_disconnect
+//  [10]   uint8 disable_pico_led
+//  [11]   uint8 polling_rate_mode
+//  [12]   uint8 audio_buffer_length
+//  [13]   uint8 controller_mode
+//  [14]   uint8 auto_haptics_enable   ← NEW
+//  [15]   uint8 auto_haptics_gain     ← NEW
+//  [16]   uint8 auto_haptics_lowpass  ← NEW
+const CONFIG_SIZE = 17;
+
+// ─── State ───────────────────────────────────────────────────────────────────
+let device = null;
+
+// ─── UI helpers ──────────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+
+function setConnected(connected, label = '') {
+  const btn = $('btnConnect');
+  $('btnRead').disabled  = !connected;
+  $('btnSave').disabled  = !connected;
+  if (connected) {
+    btn.className = btn.className.replace('bg-blue-600 hover:bg-blue-500', 'bg-green-600 hover:bg-red-600');
+    $('connectIcon').textContent = '✓';
+    $('connectLabel').textContent = 'Disconnect';
+    $('statusBar').classList.remove('hidden');
+    $('statusText').textContent = label;
+    $('chromeNotice').classList.add('hidden');
+  } else {
+    btn.className = btn.className.replace('bg-green-600 hover:bg-red-600', 'bg-blue-600 hover:bg-blue-500');
+    $('connectIcon').textContent = '⚡';
+    $('connectLabel').textContent = 'Connect';
+    $('statusBar').classList.add('hidden');
+  }
+}
+
+function toast(msg, ok = true) {
+  const el = document.createElement('div');
+  el.className = `fixed bottom-6 left-1/2 -translate-x-1/2 px-5 py-3 rounded-xl text-white text-sm font-semibold shadow-xl z-50 transition-all ${ok ? 'bg-green-600' : 'bg-red-600'}`;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2800);
+}
+
+// ─── Live slider labels ───────────────────────────────────────────────────────
+function bindSlider(id, fmt) {
+  const el = $(id);
+  const lbl = $('val_' + id);
+  if (!el || !lbl) return;
+  el.addEventListener('input', () => { lbl.textContent = fmt(el.value); });
+}
+
+bindSlider('haptics_gain',         v => (v / 100).toFixed(2));
+bindSlider('speaker_volume',       v => `${v} dB`);
+bindSlider('audio_buffer_length',  v => v);
+bindSlider('inactive_time',        v => `${v} min`);
+bindSlider('auto_haptics_gain',    v => `${v}%`);
+
+// ─── Pack / unpack config ─────────────────────────────────────────────────────
+function packConfig() {
+  const buf = new ArrayBuffer(CONFIG_SIZE);
+  const dv  = new DataView(buf);
+  const u8  = new Uint8Array(buf);
+
+  dv.setFloat32(0, parseFloat($('haptics_gain').value) / 100,  true);
+  dv.setFloat32(4, parseFloat($('speaker_volume').value),       true);
+  u8[8]  = parseInt($('inactive_time').value);
+  u8[9]  = $('disable_inactive_disconnect').checked ? 1 : 0;
+  u8[10] = $('disable_pico_led').checked ? 1 : 0;
+  u8[11] = parseInt($('polling_rate_mode').value);
+  u8[12] = parseInt($('audio_buffer_length').value);
+  u8[13] = parseInt($('controller_mode').value);
+  u8[14] = parseInt($('auto_haptics_enable').value);
+  u8[15] = parseInt($('auto_haptics_gain').value);
+  u8[16] = parseInt($('auto_haptics_lowpass').value);
+
+  return u8;
+}
+
+function applyConfig(bytes) {
+  // bytes starts at byte 1 of the feature report (skip report ID)
+  const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+
+  const hg = dv.getFloat32(0, true);
+  const sv = dv.getFloat32(4, true);
+  const it = bytes[8];
+  const did = bytes[9];
+  const led = bytes[10];
+  const pm  = bytes[11];
+  const abl = bytes[12];
+  const cm  = bytes[13];
+  const ahe = bytes[14] !== undefined ? bytes[14] : 2;
+  const ahg = bytes[15] !== undefined ? bytes[15] : 100;
+  const ahl = bytes[16] !== undefined ? bytes[16] : 1;
+
+  $('haptics_gain').value   = Math.round(hg * 100);
+  $('val_haptics_gain').textContent = hg.toFixed(2);
+
+  $('speaker_volume').value = Math.round(sv);
+  $('val_speaker_volume').textContent = `${Math.round(sv)} dB`;
+
+  $('inactive_time').value  = it;
+  $('val_inactive_time').textContent = `${it} min`;
+
+  $('disable_inactive_disconnect').checked = did === 1;
+  $('disable_pico_led').checked = led === 1;
+
+  $('polling_rate_mode').value = pm;
+  $('audio_buffer_length').value = abl;
+  $('val_audio_buffer_length').textContent = abl;
+  $('controller_mode').value = cm;
+
+  $('auto_haptics_enable').value = ahe;
+  $('auto_haptics_gain').value   = ahg;
+  $('val_auto_haptics_gain').textContent = `${ahg}%`;
+  $('auto_haptics_lowpass').value = ahl;
+}
+
+// ─── HID communication ────────────────────────────────────────────────────────
+async function readConfig() {
+  if (!device) return;
+  try {
+    const report = await device.receiveFeatureReport(0xF7);
+    const bytes  = new Uint8Array(report.buffer, 1); // skip report ID
+    if (bytes.length < CONFIG_SIZE) {
+      toast('Config too short — flash the latest firmware first.', false);
+      return;
+    }
+    applyConfig(bytes);
+    toast('Config loaded from device.');
+  } catch (e) {
+    toast(`Read failed: ${e.message}`, false);
+  }
+}
+
+async function saveConfig() {
+  if (!device) return;
+  try {
+    const cfg = packConfig();
+
+    // 0xF6 0x01 = update in memory
+    await device.sendFeatureReport(0xF6, new Uint8Array([0x01, ...cfg]));
+    // 0xF6 0x02 = save to flash
+    await device.sendFeatureReport(0xF6, new Uint8Array([0x02]));
+    // 0xF6 0x03 = USB reconnect (device may briefly disconnect)
+    await device.sendFeatureReport(0xF6, new Uint8Array([0x03]));
+
+    toast('Configuration saved to flash!');
+  } catch (e) {
+    toast(`Save failed: ${e.message}`, false);
+  }
+}
+
+// ─── Connect / disconnect ─────────────────────────────────────────────────────
+async function connect() {
+  if (device) {
+    await device.close();
+    device = null;
+    setConnected(false);
+    return;
+  }
+
+  if (!navigator.hid) {
+    toast('WebHID not supported in this browser. Use Chrome or Edge.', false);
+    return;
+  }
+
+  try {
+    const filters = [
+      { vendorId: SONY_VID, productId: DS5_PID },
+      { vendorId: SONY_VID, productId: DSE_PID },
+    ];
+    const devices = await navigator.hid.requestDevice({ filters });
+    if (!devices.length) return;
+
+    device = devices[0];
+    await device.open();
+
+    const label = `${device.productName} (${device.vendorId.toString(16).toUpperCase()}:${device.productId.toString(16).toUpperCase()})`;
+    setConnected(true, label);
+
+    device.addEventListener('inputreport', () => {});
+
+    // Auto-read config on connect
+    await readConfig();
+
+  } catch (e) {
+    toast(`Connection failed: ${e.message}`, false);
+  }
+}
+
+// ─── Wiring ───────────────────────────────────────────────────────────────────
+$('btnConnect').addEventListener('click', connect);
+$('btnRead').addEventListener('click', readConfig);
+$('btnSave').addEventListener('click', saveConfig);
+
+// Hide Chrome notice if WebHID is available
+if (navigator.hid) $('chromeNotice').classList.add('hidden');
+</script>
+</body>
+</html>
