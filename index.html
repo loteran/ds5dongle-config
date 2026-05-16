@@ -116,14 +116,18 @@
       </div>
 
       <div class="space-y-2">
-        <label class="text-sm text-gray-300">Low-pass Cutoff</label>
-        <select id="auto_haptics_lowpass">
-          <option value="0">0 — 80 Hz (deep bass only, heavy rumble)</option>
-          <option value="1" selected>1 — 160 Hz (balanced bass, recommended)</option>
-          <option value="2">2 — 250 Hz (extended bass, more detail)</option>
-          <option value="3">3 — 400 Hz (wide bass, maximum detail)</option>
-        </select>
-        <p class="text-xs text-gray-500">The DualSense actuators work best between 30–500 Hz. 160 Hz captures explosions, footsteps and gunshots well.</p>
+        <div class="flex justify-between text-sm">
+          <label class="text-gray-300">Low-pass Cutoff</label>
+          <span id="val_auto_haptics_lowpass" class="text-blue-400 font-mono">80 Hz</span>
+        </div>
+        <input type="range" id="auto_haptics_lowpass" min="0" max="3" step="1" value="0" class="w-full h-2 rounded-lg cursor-pointer" />
+        <div class="flex justify-between text-xs text-gray-500 px-0.5">
+          <span>80 Hz</span>
+          <span>160 Hz</span>
+          <span>250 Hz</span>
+          <span>400 Hz</span>
+        </div>
+        <p class="text-xs text-gray-500">The DualSense actuators work best between 30–500 Hz. 80 Hz = heavy bass rumble, 400 Hz = maximum detail.</p>
       </div>
     </div>
 
@@ -269,11 +273,14 @@ function bindSlider(id, fmt) {
   el.addEventListener('input', () => { lbl.textContent = fmt(el.value); });
 }
 
-bindSlider('haptics_gain',         v => (v / 100).toFixed(2));
-bindSlider('speaker_volume',       v => `${v} dB`);
-bindSlider('audio_buffer_length',  v => v);
-bindSlider('inactive_time',        v => `${v} min`);
-bindSlider('auto_haptics_gain',    v => `${v}%`);
+const LP_FREQS = ['80 Hz', '160 Hz', '250 Hz', '400 Hz'];
+
+bindSlider('haptics_gain',          v => (v / 100).toFixed(2));
+bindSlider('speaker_volume',        v => `${v} dB`);
+bindSlider('audio_buffer_length',   v => v);
+bindSlider('inactive_time',         v => `${v} min`);
+bindSlider('auto_haptics_gain',     v => `${v}%`);
+bindSlider('auto_haptics_lowpass',  v => LP_FREQS[v] ?? `${v}`);
 
 // ─── Pack / unpack config ─────────────────────────────────────────────────────
 function packConfig() {
@@ -310,7 +317,7 @@ function applyConfig(bytes) {
   const cm  = bytes[13];
   const ahe = bytes[14] !== undefined ? bytes[14] : 2;
   const ahg = bytes[15] !== undefined ? bytes[15] : 100;
-  const ahl = bytes[16] !== undefined ? bytes[16] : 1;
+  const ahl = bytes[16] !== undefined ? bytes[16] : 0;
 
   $('haptics_gain').value   = Math.round(hg * 100);
   $('val_haptics_gain').textContent = hg.toFixed(2);
@@ -333,6 +340,7 @@ function applyConfig(bytes) {
   $('auto_haptics_gain').value   = ahg;
   $('val_auto_haptics_gain').textContent = `${ahg}%`;
   $('auto_haptics_lowpass').value = ahl;
+  $('val_auto_haptics_lowpass').textContent = LP_FREQS[ahl] ?? `${ahl}`;
 }
 
 // ─── HID communication ────────────────────────────────────────────────────────
