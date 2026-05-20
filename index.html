@@ -369,8 +369,11 @@ async function saveConfig() {
     await device.sendFeatureReport(0xF6, new Uint8Array([0x01, ...cfg]));
     // 0xF6 0x02 = save to flash
     await device.sendFeatureReport(0xF6, new Uint8Array([0x02]));
-    // 0xF6 0x03 = USB reconnect (device may briefly disconnect)
-    await device.sendFeatureReport(0xF6, new Uint8Array([0x03]));
+    // 0xF6 0x03 = USB reconnect — the Pico disconnects immediately, so the
+    // browser may throw before receiving the ACK. This is expected and harmless.
+    try {
+      await device.sendFeatureReport(0xF6, new Uint8Array([0x03]));
+    } catch (_) { /* device disconnected to reconnect — normal */ }
 
     toast('Configuration saved to flash!');
   } catch (e) {
