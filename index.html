@@ -1,294 +1,559 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#111827" />
+  <meta name="theme-color" content="#0b1120" />
   <title>DS5 Bridge Config</title>
-  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { font-family: 'Segoe UI', system-ui, sans-serif; }
-    input[type=range] { accent-color: #3b82f6; }
-    .card { background: #1f2937; border: 1px solid #374151; border-radius: 12px; }
-    .badge { font-size: 0.7rem; padding: 2px 7px; border-radius: 99px; font-weight: 600; }
-    select { background: #111827; border: 1px solid #374151; color: #f9fafb; border-radius: 6px; padding: 4px 8px; width: 100%; }
-    select:focus { outline: 2px solid #3b82f6; }
-    .toggle { position: relative; width: 44px; height: 24px; }
-    .toggle input { opacity: 0; width: 0; height: 0; }
-    .toggle .slider { position: absolute; inset: 0; background: #374151; border-radius: 24px; cursor: pointer; transition: .2s; }
-    .toggle .slider:before { content: ""; position: absolute; height: 18px; width: 18px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: .2s; }
-    .toggle input:checked + .slider { background: #3b82f6; }
-    .toggle input:checked + .slider:before { transform: translateX(20px); }
-    .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-    .auto-haptics-section { border: 1px solid #2563eb44; background: #1e3a5f22; border-radius: 12px; }
-    @keyframes pulse-blue { 0%,100%{opacity:1} 50%{opacity:.5} }
-    .connecting { animation: pulse-blue 1.2s infinite; }
+/* ── Upstream CSS (verbatim from ds5.awalol.eu.org) ─────────────────────── */
+@layer properties{@supports (((-webkit-hyphens:none)) and (not (margin-trim:inline))) or ((-moz-orient:inline) and (not (color:rgb(from red r g b)))){*,:before,:after,::backdrop{--tw-rotate-x:initial;--tw-rotate-y:initial;--tw-rotate-z:initial;--tw-skew-x:initial;--tw-skew-y:initial;--tw-border-style:solid;--tw-leading:initial;--tw-font-weight:initial;--tw-shadow:0 0 #0000;--tw-shadow-color:initial;--tw-shadow-alpha:100%;--tw-inset-shadow:0 0 #0000;--tw-inset-shadow-color:initial;--tw-inset-shadow-alpha:100%;--tw-ring-color:initial;--tw-ring-shadow:0 0 #0000;--tw-inset-ring-color:initial;--tw-inset-ring-shadow:0 0 #0000;--tw-ring-inset:initial;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-offset-shadow:0 0 #0000;--tw-outline-style:solid;--tw-translate-x:0;--tw-translate-y:0;--tw-translate-z:0;--tw-animation-delay:0s;--tw-animation-direction:normal;--tw-animation-duration:initial;--tw-animation-fill-mode:none;--tw-animation-iteration-count:1;--tw-enter-blur:0;--tw-enter-opacity:1;--tw-enter-rotate:0;--tw-enter-scale:1;--tw-enter-translate-x:0;--tw-enter-translate-y:0;--tw-exit-blur:0;--tw-exit-opacity:1;--tw-exit-rotate:0;--tw-exit-scale:1;--tw-exit-translate-x:0;--tw-exit-translate-y:0}}}@layer theme{:root,:host{--font-sans:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";--font-mono:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;--color-blue-600:oklch(54.6% .245 262.881);--color-blue-700:oklch(48.8% .243 264.376);--color-white:#fff;--spacing:.25rem;--text-xs:.75rem;--text-xs--line-height:calc(1 / .75);--text-sm:.875rem;--text-sm--line-height:calc(1.25 / .875);--text-base:1rem;--text-base--line-height:calc(1.5 / 1);--font-weight-medium:500;--font-weight-semibold:600;--font-weight-bold:700;--default-transition-duration:.15s;--default-transition-timing-function:cubic-bezier(.4, 0, .2, 1);--default-font-family:var(--font-sans);--default-mono-font-family:var(--font-mono)}}@layer base{*,:after,:before,::backdrop{box-sizing:border-box;border:0 solid;margin:0;padding:0}html,:host{-webkit-text-size-adjust:100%;tab-size:4;line-height:1.5;font-family:var(--default-font-family,ui-sans-serif,system-ui,sans-serif);-webkit-tap-highlight-color:transparent}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}button,input,select,textarea{font:inherit;color:inherit;opacity:1;background-color:#0000;border-radius:0}[hidden]{display:none!important}*{border-color:var(--border)}}@layer utilities{.pointer-events-none{pointer-events:none}.absolute{position:absolute}.relative{position:relative}.end{inset-inline-end:var(--spacing)}.col-start-2{grid-column-start:2}.row-span-2{grid-row:span 2/span 2}.row-start-1{grid-row-start:1}.block{display:block}.flex{display:flex}.grid{display:grid}.inline-flex{display:inline-flex}.size-4{width:calc(var(--spacing)*4);height:calc(var(--spacing)*4)}.size-9{width:calc(var(--spacing)*9);height:calc(var(--spacing)*9)}.h-2{height:calc(var(--spacing)*2)}.h-7{height:calc(var(--spacing)*7)}.h-8{height:calc(var(--spacing)*8)}.h-9{height:calc(var(--spacing)*9)}.h-10{height:calc(var(--spacing)*10)}.h-full{height:100%}.w-8{width:calc(var(--spacing)*8)}.w-fit{width:fit-content}.w-full{width:100%}.min-w-0{min-width:0}.flex-1{flex:1}.shrink-0{flex-shrink:0}.grow{flex-grow:1}.touch-none{touch-action:none}.auto-rows-min{grid-auto-rows:min-content}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.flex-col{flex-direction:column}.items-center{align-items:center}.items-start{align-items:flex-start}.justify-center{justify-content:center}.gap-1\.5{gap:calc(var(--spacing)*1.5)}.gap-2{gap:calc(var(--spacing)*2)}.gap-6{gap:calc(var(--spacing)*6)}.self-start{align-self:flex-start}.justify-self-end{justify-self:flex-end}.overflow-hidden{overflow:hidden}.rounded-full{border-radius:3.40282e38px}.rounded-lg{border-radius:var(--radius)}.rounded-md{border-radius:calc(var(--radius) - 2px)}.rounded-xl{border-radius:calc(var(--radius) + 4px)}.border{border-style:solid;border-width:1px}.bg-background{background-color:var(--background)}.bg-blue-600{background-color:var(--color-blue-600)}.bg-card{background-color:var(--card)}.bg-destructive{background-color:var(--destructive)}.bg-muted{background-color:var(--muted)}.bg-primary{background-color:var(--primary)}.bg-secondary{background-color:var(--secondary)}.bg-transparent{background-color:#0000}.p-0{padding:0}.px-2{padding-inline:calc(var(--spacing)*2)}.px-3{padding-inline:calc(var(--spacing)*3)}.px-4{padding-inline:calc(var(--spacing)*4)}.px-6{padding-inline:calc(var(--spacing)*6)}.py-1{padding-block:calc(var(--spacing)*1)}.py-2{padding-block:calc(var(--spacing)*2)}.py-6{padding-block:calc(var(--spacing)*6)}.text-base{font-size:var(--text-base)}.text-sm{font-size:var(--text-sm)}.text-xs{font-size:var(--text-xs)}.leading-none{line-height:1}.font-bold{font-weight:700}.font-medium{font-weight:500}.font-semibold{font-weight:600}.whitespace-nowrap{white-space:nowrap}.text-card-foreground{color:var(--card-foreground)}.text-foreground{color:var(--foreground)}.text-muted-foreground{color:var(--muted-foreground)}.text-primary{color:var(--primary)}.text-primary-foreground{color:var(--primary-foreground)}.text-secondary-foreground{color:var(--secondary-foreground)}.text-white{color:#fff}.shadow-sm{box-shadow:0 1px 3px 0 #0000001a,0 1px 2px -1px #0000001a}.outline-none{outline:none}.select-none{user-select:none}.disabled\:opacity-50:disabled{opacity:.5}.data-\[state\=checked\]\:bg-primary[data-state=checked]{background-color:var(--primary)}.data-\[state\=unchecked\]\:bg-input[data-state=unchecked]{background-color:var(--input)}@media (hover:hover){.hover\:bg-blue-700:hover{background-color:var(--color-blue-700)}.hover\:bg-secondary\/80:hover{background-color:color-mix(in oklab,var(--secondary) 80%,transparent)}.hover\:bg-accent:hover{background-color:var(--accent)}.hover\:underline:hover{text-decoration:underline}}}
+
+:root{--radius:.625rem;--background:oklch(100% 0 0);--foreground:oklch(14.5% 0 0);--card:oklch(100% 0 0);--card-foreground:oklch(14.5% 0 0);--primary:oklch(20.5% 0 0);--primary-foreground:oklch(98.5% 0 0);--secondary:oklch(97% 0 0);--secondary-foreground:oklch(20.5% 0 0);--muted:oklch(97% 0 0);--muted-foreground:oklch(55.6% 0 0);--accent:oklch(97% 0 0);--accent-foreground:oklch(20.5% 0 0);--destructive:oklch(57.7% .245 27.325);--border:oklch(92.2% 0 0);--input:oklch(92.2% 0 0);--ring:oklch(70.8% 0 0);--app-surface:#f5f7fa;--app-heading:#111827;--app-label:#5f6b7a;--app-panel-border:#e7edf3;--app-error:#be123c;--app-warning:#8a4b0a;--app-warning-bg:#fffbeb;--app-warning-border:#fde68a;color:var(--foreground);background:var(--app-surface);font-synthesis:none;text-rendering:optimizelegibility;-webkit-font-smoothing:antialiased;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.dark{--background:oklch(14.5% 0 0);--foreground:oklch(98.5% 0 0);--card:oklch(20.5% 0 0);--card-foreground:oklch(98.5% 0 0);--primary:oklch(92.2% 0 0);--primary-foreground:oklch(20.5% 0 0);--secondary:oklch(26.9% 0 0);--secondary-foreground:oklch(98.5% 0 0);--muted:oklch(26.9% 0 0);--muted-foreground:oklch(70.8% 0 0);--accent:oklch(26.9% 0 0);--accent-foreground:oklch(98.5% 0 0);--destructive:oklch(70.4% .191 22.216);--border:oklch(100% 0 0/.1);--input:oklch(100% 0 0/.15);--ring:oklch(55.6% 0 0);--app-surface:#0b1120;--app-heading:#f8fafc;--app-label:#94a3b8;--app-panel-border:#ffffff1a;--app-error:#fb7185;--app-warning:#fbbf24;--app-warning-bg:#fbbf241a;--app-warning-border:#fbbf2447}html{background:var(--app-surface)}*{box-sizing:border-box}body{background:radial-gradient(circle at top left,color-mix(in srgb,var(--primary) 9%,transparent),transparent 36rem),var(--app-surface);min-width:320px;min-height:100vh;margin:0;overflow-x:hidden}button,input{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed}
+
+/* ── Layout ─────────────────────────────────────────────────────────────── */
+.app-shell{grid-template-rows:auto auto auto auto;align-content:start;width:min(1360px,100% - 40px);min-height:100svh;margin:0 auto;padding:clamp(42px,6.4vh,68px) 0 clamp(24px,4vh,40px);display:grid}
+.app-header{background:var(--card);border-radius:12px;justify-content:space-between;align-items:center;gap:16px;margin-bottom:clamp(16px,2.2vh,26px);padding:clamp(10px,1.5vh,14px);display:flex}
+.brand-lockup{align-items:center;gap:12px;min-width:0;display:flex}
+.app-icon{border-radius:24%;flex:none;width:clamp(38px,6vh,56px);height:clamp(38px,6vh,56px);background:var(--secondary);color:var(--primary);display:grid;place-items:center}
+.header-actions{align-items:center;gap:10px;display:flex}
+.eyebrow{color:var(--app-label);letter-spacing:0;text-transform:uppercase;font-size:.78rem;font-weight:700}
+h1{color:var(--app-heading);font-size:clamp(1.45rem,3.8vh,2.35rem);line-height:1;margin:0}
+h2{font-size:1.05rem;margin:0}
+h3{margin:0;font-size:.92rem;line-height:1.2;color:var(--app-heading)}
+
+/* ── Status pill ─────────────────────────────────────────────────────────── */
+.status-pill{min-height:38px;color:var(--muted-foreground);background:var(--card);border:1px solid var(--border);white-space:nowrap;border-radius:999px;align-items:center;gap:8px;padding:0 14px;font-weight:700;display:inline-flex}
+.status-pill.connected{color:var(--primary);background:var(--secondary)}
+
+/* ── Notices ─────────────────────────────────────────────────────────────── */
+.notice{border:1px solid;border-radius:8px;align-items:center;gap:10px;min-height:38px;margin-bottom:clamp(8px,1.4vh,12px);padding:9px 12px;font-weight:650;display:flex}
+.notice.warning{color:var(--app-warning);background:var(--app-warning-bg);border-color:var(--app-warning-border)}
+
+/* ── Device strip ────────────────────────────────────────────────────────── */
+.device-strip-card{background:var(--card);border-radius:14px;margin-bottom:clamp(10px,1.6vh,16px);padding:0}
+.device-strip{grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;padding:clamp(8px,1.4vh,12px);display:grid}
+.device-main{align-items:center;gap:12px;min-width:0;display:flex}
+.device-main strong{overflow-wrap:anywhere;display:block}
+.device-metadata{color:var(--muted-foreground);flex-wrap:wrap;align-items:center;gap:6px 12px;margin-top:3px;font-size:.78rem;font-weight:700;display:flex}
+.device-metadata-item{align-items:center;gap:6px;display:inline-flex}
+.device-metadata code{color:var(--app-heading);overflow-wrap:anywhere;font-family:inherit}
+.device-icon{width:38px;height:38px;color:var(--primary);background:var(--secondary);border-radius:8px;place-items:center;display:grid}
+.device-actions{gap:10px;display:flex;flex-wrap:wrap;justify-content:flex-end}
+
+/* ── Content grid ────────────────────────────────────────────────────────── */
+.content-grid{grid-template-columns:minmax(0,1fr) 280px;align-items:start;gap:12px;min-height:0;display:grid}
+
+/* ── Panels ──────────────────────────────────────────────────────────────── */
+.panel{background:var(--card);border-radius:14px;min-height:0;padding:clamp(10px,1.5vh,14px);display:block}
+.panel-title{color:var(--app-heading);align-items:center;gap:10px;margin-bottom:clamp(6px,1vh,10px);display:flex}
+.panel-title svg{color:var(--primary)}
+.action-stack{gap:10px;display:flex;flex-direction:column;margin-top:10px}
+
+/* ── Config sections ─────────────────────────────────────────────────────── */
+.config-sections{grid-template-columns:minmax(0,1.08fr) minmax(0,1fr);grid-auto-flow:dense;align-items:start;gap:clamp(8px,1.2vh,10px);display:grid}
+.config-section{background:var(--secondary);min-width:0;padding:clamp(10px,1.35vh,12px);border-radius:10px}
+@supports (color:color-mix(in lab,red,red)){.config-section{background:color-mix(in srgb,var(--secondary) 72%,var(--card))}}
+.config-section-featured{grid-column:1/-1}
+.config-section-heading{align-items:flex-start;gap:8px;margin-bottom:clamp(5px,.9vh,8px);display:flex}
+.config-section-icon{width:28px;height:28px;color:var(--primary);border-radius:8px;flex:none;place-items:center;display:grid}
+.config-section-heading p{color:var(--muted-foreground);margin:3px 0 0;font-size:.76rem;line-height:1.25}
+
+/* ── Control rows ────────────────────────────────────────────────────────── */
+.control-stack{flex-direction:column;display:flex}
+.control-row{background:var(--card);grid-template-columns:minmax(130px,.68fr) minmax(200px,1fr);align-items:center;gap:10px;min-height:clamp(44px,6.1vh,54px);margin-top:8px;padding:clamp(8px,1.1vh,10px) 10px;display:grid;border-radius:9px}
+@supports (color:color-mix(in lab,red,red)){.control-row{background:color-mix(in srgb,var(--card) 62%,transparent)}}
+.control-row:first-child{margin-top:0}
+.control-row strong{font-size:.9rem;line-height:1.25;display:block}
+.control-row small{color:var(--app-error);margin-top:5px;font-weight:650;display:block}
+.control-row p{color:var(--muted-foreground);margin:2px 0 0;font-size:.75rem;line-height:1.25}
+.compact-stack .control-row{grid-template-columns:1fr;align-items:stretch;gap:8px}
+.compact-stack .toggle-row{grid-template-columns:minmax(0,1fr) auto;align-items:center}
+.range-inputs{grid-template-columns:minmax(112px,1fr) 72px;align-items:center;gap:8px;display:grid}
+.toggle-row{min-height:clamp(38px,5.3vh,46px)}
+.full-row{grid-template-columns:1fr !important}
+
+/* ── State box ───────────────────────────────────────────────────────────── */
+.state-box{background:var(--secondary);border-radius:8px;padding:clamp(10px,1.6vh,14px)}
+@supports (color:color-mix(in lab,red,red)){.state-box{background:color-mix(in srgb,var(--secondary) 72%,var(--card))}}
+.state-box strong{display:block}
+.state-box p{color:var(--muted-foreground);font-size:.82rem;margin-top:6px}
+.state-warning{color:var(--app-warning);background:var(--app-warning-bg);border:1px solid var(--app-warning-border);border-radius:8px;margin-top:10px;padding:9px 10px;font-size:.86rem;font-weight:700;line-height:1.35}
+
+/* ── Footer ──────────────────────────────────────────────────────────────── */
+.app-footer{color:var(--muted-foreground);background:var(--card);border-radius:12px;justify-content:space-between;align-self:start;align-items:stretch;gap:18px;margin-top:clamp(16px,2.2vh,26px);padding:clamp(14px,2vh,18px) clamp(16px,2.4vh,22px);font-size:.82rem;font-weight:650;display:flex}
+.footer-copy{flex-direction:column;justify-content:center;align-items:flex-start;gap:6px;min-width:0;display:flex}
+.app-footer strong{color:var(--app-heading);font-size:.98rem}
+.footer-link{color:var(--primary);background:var(--secondary);align-self:center;align-items:center;gap:7px;padding:9px 12px;white-space:nowrap;border-radius:999px;font-weight:800;text-decoration:none;display:flex}
+@supports (color:color-mix(in lab,red,red)){.footer-link{background:color-mix(in srgb,var(--secondary) 70%,var(--card))}}
+.footer-link:hover{text-decoration:underline}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (width<=860px){
+  .app-shell{width:min(100% - 20px,680px);min-height:auto;padding:20px 0}
+  .app-header{flex-direction:column;align-items:stretch}
+  .device-strip{grid-template-columns:1fr;align-items:stretch}
+  .status-pill{align-self:flex-start}
+  .header-actions{flex-direction:column;align-items:flex-start}
+  .device-actions{justify-content:stretch}
+  .device-actions button{flex:140px}
+  .content-grid{grid-template-columns:1fr}
+  .app-footer{flex-direction:column;align-items:flex-start}
+  .footer-link{align-self:flex-start}
+  .config-sections{grid-template-columns:1fr}
+}
+@media (width<=480px){.panel{padding:14px}.range-inputs{grid-template-columns:1fr}}
+
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
+.btn{border:none;border-radius:var(--radius);padding:8px 16px;font-weight:600;font-size:.875rem;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:background .15s;white-space:nowrap;line-height:1}
+.btn-primary{background:var(--color-blue-600);color:#fff}
+.btn-primary:hover{background:var(--color-blue-700)}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.btn-outline{background:var(--secondary);color:var(--foreground);border:1px solid var(--border)}
+.btn-outline:hover{background:var(--accent)}
+.btn-outline:disabled{opacity:.4;cursor:not-allowed}
+.btn-danger{background:transparent;color:var(--app-error);border:1px solid var(--app-error)}
+.btn-danger:hover{background:color-mix(in srgb,var(--app-error) 10%,transparent)}
+
+/* ── Form inputs ─────────────────────────────────────────────────────────── */
+input[type=range]{accent-color:var(--color-blue-600);width:100%;height:6px;cursor:pointer}
+input[type=number],input[type=text]{background:var(--muted);border:1px solid var(--border);color:var(--foreground);border-radius:6px;padding:5px 7px;width:100%;font-family:var(--font-mono);font-size:.82rem;text-align:right;outline:none}
+input[type=number]:focus,input[type=text]:focus{border-color:var(--color-blue-600)}
+input[type=text][readonly]{cursor:default;color:var(--muted-foreground)}
+select{background:var(--muted);border:1px solid var(--border);color:var(--foreground);border-radius:6px;padding:7px 8px;width:100%;font-size:.85rem;cursor:pointer;outline:none}
+select:focus{border-color:var(--color-blue-600)}
+
+/* ── Toggle switch ───────────────────────────────────────────────────────── */
+.toggle{position:relative;width:34px;height:19px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.toggle .slider{position:absolute;inset:0;background:var(--input);border-radius:19px;cursor:pointer;transition:.2s;border:1px solid var(--border)}
+.toggle .slider:before{content:"";position:absolute;height:13px;width:13px;left:2px;bottom:2px;background:#fff;border-radius:50%;transition:.2s}
+.toggle input:checked+.slider{background:var(--color-blue-600);border-color:transparent}
+.toggle input:checked+.slider:before{transform:translateX(15px)}
+
+/* ── Auto-haptics badge ──────────────────────────────────────────────────── */
+.badge-new{font-size:.68rem;padding:2px 7px;border-radius:99px;font-weight:700;background:var(--color-blue-600);color:#fff;vertical-align:middle;margin-left:6px}
+.section-ah .config-section-icon{color:var(--color-blue-600)}
+.section-ah{border:1px solid oklch(54.6% .245 262.881 / 0.25) !important}
+
+/* ── Toast ───────────────────────────────────────────────────────────────── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:12px 20px;border-radius:12px;color:#fff;font-weight:700;font-size:.875rem;z-index:50;box-shadow:0 8px 32px #00000060;white-space:nowrap;pointer-events:none}
+
+@keyframes pulse-in{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.toast{animation:pulse-in .2s ease}
   </style>
 </head>
-<body class="bg-gray-900 text-gray-100 min-h-screen p-4 md:p-8">
+<body>
+<div class="app-shell">
 
-  <div class="max-w-2xl mx-auto space-y-6">
-
-    <!-- Header -->
-    <div class="flex items-center justify-between">
+  <!-- ═══ HEADER ════════════════════════════════════════════════════════════ -->
+  <header class="app-header">
+    <div class="brand-lockup">
+      <div class="app-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="7" width="20" height="13" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+          <line x1="12" y1="11" x2="12" y2="15"/><line x1="10" y1="13" x2="14" y2="13"/>
+        </svg>
+      </div>
       <div>
-        <h1 class="text-2xl font-bold text-white">DS5 Bridge Config</h1>
-        <p class="text-gray-400 text-sm mt-0.5">Raspberry Pi Pico 2 W — Auto Haptics Edition</p>
+        <h1>DS5 Bridge</h1>
+        <div class="eyebrow">Auto Haptics Edition</div>
       </div>
-      <button id="btnConnect"
-        class="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm transition-colors">
-        <span id="connectIcon">⚡</span>
-        <span id="connectLabel">Connect</span>
+    </div>
+    <div class="header-actions">
+      <div id="statusPill" class="status-pill">
+        <svg id="statusIcon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span id="statusText">Not connected</span>
+      </div>
+      <button id="btnConnect" class="btn btn-primary">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Connect
       </button>
     </div>
+  </header>
 
-    <!-- Status bar -->
-    <div id="statusBar" class="card px-4 py-3 flex items-center gap-3 text-sm hidden">
-      <span class="status-dot bg-green-400"></span>
-      <span id="statusText" class="text-gray-300"></span>
-    </div>
-
-    <!-- Notice: needs Chrome -->
-    <div class="card px-4 py-3 text-sm text-yellow-300 flex gap-2 items-start" id="chromeNotice">
-      <span>⚠️</span>
-      <span>WebHID requires <strong>Chrome, Edge or Opera</strong>. Firefox and Safari are not supported.</span>
-    </div>
-
-    <!-- === HAPTICS === -->
-    <div class="card p-5 space-y-5">
-      <h2 class="font-semibold text-gray-200 text-base flex items-center gap-2">
-        <span>🎮</span> Haptics & Audio
-      </h2>
-
-      <div class="space-y-2">
-        <div class="flex justify-between text-sm">
-          <label class="text-gray-300">Haptics Gain</label>
-          <span id="val_haptics_gain" class="text-blue-400 font-mono">1.00</span>
-        </div>
-        <input type="range" id="haptics_gain" min="100" max="200" step="1" value="100" class="w-full h-2 rounded-lg cursor-pointer" />
-        <p class="text-xs text-gray-500">Global multiplier for all haptic signals sent to the DualSense [1.0 – 2.0]</p>
-      </div>
-
-      <div class="space-y-2">
-        <div class="flex justify-between text-sm">
-          <label class="text-gray-300">Speaker Volume</label>
-          <span id="val_speaker_volume" class="text-blue-400 font-mono">-100 dB</span>
-        </div>
-        <input type="range" id="speaker_volume" min="-100" max="0" step="1" value="-100" class="w-full h-2 rounded-lg cursor-pointer" />
-        <p class="text-xs text-gray-500">Volume of the DualSense internal speaker [-100 – 0 dB]</p>
-      </div>
-
-      <div class="space-y-2">
-        <div class="flex justify-between text-sm">
-          <label class="text-gray-300">Audio Buffer Length</label>
-          <span id="val_audio_buffer_length" class="text-blue-400 font-mono">64</span>
-        </div>
-        <input type="range" id="audio_buffer_length" min="16" max="128" step="1" value="64" class="w-full h-2 rounded-lg cursor-pointer" />
-        <p class="text-xs text-gray-500">Haptics PCM buffer size sent per BT packet [16 – 128]. Lower = less latency, higher = smoother.</p>
-      </div>
-    </div>
-
-    <!-- === AUTO HAPTICS (NEW) === -->
-    <div class="p-5 space-y-5 auto-haptics-section">
-      <h2 class="font-semibold text-blue-300 text-base flex items-center gap-2">
-        <span>🔊</span> Auto Haptics
-        <span class="badge bg-blue-600 text-white">NEW</span>
-      </h2>
-      <p class="text-xs text-gray-400 -mt-2">Generates rumble from game audio — works even when the game sends no haptic commands.</p>
-
-      <div class="space-y-2">
-        <label class="text-sm text-gray-300">Mode</label>
-        <select id="auto_haptics_enable">
-          <option value="0">0 — Off (native ch3/ch4 only, original behaviour)</option>
-          <option value="1">1 — Mix (native haptics + audio-derived blended)</option>
-          <option value="2" selected>2 — Replace (audio-derived only, recommended)</option>
-        </select>
-        <p class="text-xs text-gray-500">Replace is best when your game sends no haptics. Mix lets native and audio signals coexist.</p>
-      </div>
-
-      <div class="space-y-2">
-        <div class="flex justify-between text-sm">
-          <label class="text-gray-300">Intensity</label>
-          <span id="val_auto_haptics_gain" class="text-blue-400 font-mono">100%</span>
-        </div>
-        <input type="range" id="auto_haptics_gain" min="0" max="200" step="5" value="100" class="w-full h-2 rounded-lg cursor-pointer" />
-        <p class="text-xs text-gray-500">Strength of the audio-derived haptic signal, as a percentage of Haptics Gain [0 – 200%]</p>
-      </div>
-
-      <div class="space-y-2">
-        <div class="flex justify-between text-sm">
-          <label class="text-gray-300">Low-pass Cutoff</label>
-          <span id="val_auto_haptics_lowpass" class="text-blue-400 font-mono">80 Hz</span>
-        </div>
-        <input type="range" id="auto_haptics_lowpass" min="0" max="3" step="1" value="0" class="w-full h-2 rounded-lg cursor-pointer" />
-        <div class="flex justify-between text-xs text-gray-500 px-0.5">
-          <span>80 Hz</span>
-          <span>160 Hz</span>
-          <span>250 Hz</span>
-          <span>400 Hz</span>
-        </div>
-        <p class="text-xs text-gray-500">The DualSense actuators work best between 30–500 Hz. 80 Hz = heavy bass rumble, 400 Hz = maximum detail.</p>
-      </div>
-    </div>
-
-    <!-- === CONTROLLER === -->
-    <div class="card p-5 space-y-5">
-      <h2 class="font-semibold text-gray-200 text-base flex items-center gap-2">
-        <span>🕹️</span> Controller
-      </h2>
-
-      <div class="space-y-2">
-        <label class="text-sm text-gray-300">Controller Mode</label>
-        <select id="controller_mode">
-          <option value="0">DS5 — DualSense (0x0CE6)</option>
-          <option value="1">DSE — DualSense Edge (0x0DF2)</option>
-          <option value="2" selected>Auto — detect from paired device</option>
-        </select>
-      </div>
-
-      <div class="space-y-2">
-        <label class="text-sm text-gray-300">Polling Rate</label>
-        <select id="polling_rate_mode">
-          <option value="0">250 Hz</option>
-          <option value="1">500 Hz</option>
-          <option value="2">Real-time (1000 Hz)</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- === POWER & LED === -->
-    <div class="card p-5 space-y-5">
-      <h2 class="font-semibold text-gray-200 text-base flex items-center gap-2">
-        <span>🔋</span> Power & LED
-      </h2>
-
-      <div class="space-y-2">
-        <div class="flex justify-between text-sm">
-          <label class="text-gray-300">Auto-disconnect Delay</label>
-          <span id="val_inactive_time" class="text-blue-400 font-mono">30 min</span>
-        </div>
-        <input type="range" id="inactive_time" min="5" max="60" step="1" value="30" class="w-full h-2 rounded-lg cursor-pointer" />
-      </div>
-
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-sm text-gray-300">Disable Auto-disconnect</p>
-          <p class="text-xs text-gray-500">Keep connected even when idle</p>
-        </div>
-        <label class="toggle">
-          <input type="checkbox" id="disable_inactive_disconnect" />
-          <span class="slider"></span>
-        </label>
-      </div>
-
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-sm text-gray-300">Disable Pico LED</p>
-          <p class="text-xs text-gray-500">Turn off the onboard LED</p>
-        </div>
-        <label class="toggle">
-          <input type="checkbox" id="disable_pico_led" />
-          <span class="slider"></span>
-        </label>
-      </div>
-    </div>
-
-    <!-- Save button -->
-    <div class="flex gap-3">
-      <button id="btnRead"
-        class="flex-1 py-3 rounded-xl bg-gray-700 hover:bg-gray-600 text-white font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-        disabled>
-        Read Config
-      </button>
-      <button id="btnSave"
-        class="flex-1 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-        disabled>
-        Save to Device
-      </button>
-    </div>
-
-    <p class="text-center text-xs text-gray-600">
-      DS5Dongle Auto Haptics Edition · <a href="https://github.com/awalol/DS5Dongle" class="underline hover:text-gray-400" target="_blank">awalol/DS5Dongle</a>
-    </p>
+  <!-- ═══ NOTICE ════════════════════════════════════════════════════════════ -->
+  <div class="notice warning" id="chromeNotice">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    WebHID requires <strong>&nbsp;Chrome, Edge or Opera</strong>. Firefox and Safari are not supported.
   </div>
 
+  <!-- ═══ DEVICE STRIP ══════════════════════════════════════════════════════ -->
+  <div class="device-strip-card" id="deviceCard" style="display:none">
+    <div class="device-strip">
+      <div class="device-main">
+        <div class="device-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="7" width="20" height="13" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+          </svg>
+        </div>
+        <div>
+          <strong id="deviceName">DS5 Bridge</strong>
+          <div class="device-metadata">
+            <span class="device-metadata-item"><code id="deviceId">—</code></span>
+          </div>
+        </div>
+      </div>
+      <div class="device-actions">
+        <button id="btnRead" class="btn btn-outline" disabled>Read Config</button>
+        <button id="btnSave" class="btn btn-primary" disabled>Save to Device</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ CONTENT GRID ══════════════════════════════════════════════════════ -->
+  <div class="content-grid">
+
+    <!-- ── CONFIG PANEL ─────────────────────────────────────────────────── -->
+    <div class="panel config-panel">
+      <div class="panel-title">
+        <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M5.34 5.34 3.93 6.75M19.07 19.07l-1.41-1.41M5.34 18.66l-1.41 1.41M20 12h2M2 12h2M12 20v2M12 2v2"/></svg>
+        <h2>Configuration</h2>
+      </div>
+
+      <div class="config-sections p-0">
+
+        <!-- ── FEEDBACK ──────────────────────────────────────────────────── -->
+        <section class="config-section config-section-featured">
+          <div class="config-section-heading">
+            <div class="config-section-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16.1A5 5 0 0 1 5.9 20M2 12.05A9 9 0 0 1 9.95 20M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6M2 20h.01"/><line x1="14" y1="15" x2="14" y2="15.01"/></svg>
+            </div>
+            <div>
+              <h3>Feedback output</h3>
+              <p>Tune controller haptics, speaker level, and buffer size.</p>
+            </div>
+          </div>
+          <div class="control-stack">
+
+            <div class="control-row">
+              <div><strong>Haptics Gain</strong><p>Global multiplier [1.0 – 2.0]</p></div>
+              <div class="range-inputs">
+                <input type="range" id="haptics_gain" min="1" max="2" step="0.05" value="1">
+                <input type="number" id="val_haptics_gain" min="1" max="2" step="0.05" value="1.00">
+              </div>
+            </div>
+
+            <div class="control-row">
+              <div><strong>Speaker Volume</strong><p>DualSense internal speaker [-100 – 0 dB]</p></div>
+              <div class="range-inputs">
+                <input type="range" id="speaker_volume" min="-100" max="0" step="1" value="-100">
+                <input type="number" id="val_speaker_volume" min="-100" max="0" step="1" value="-100">
+              </div>
+            </div>
+
+            <div class="control-row">
+              <div><strong>Haptics Buffer Length</strong><p>PCM bytes per BT packet [16 – 128]</p></div>
+              <div class="range-inputs">
+                <input type="range" id="audio_buffer_length" min="16" max="128" step="1" value="64">
+                <input type="number" id="val_audio_buffer_length" min="16" max="128" step="1" value="64">
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ── AUTO HAPTICS ──────────────────────────────────────────────── -->
+        <section class="config-section config-section-featured section-ah">
+          <div class="config-section-heading">
+            <div class="config-section-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+            </div>
+            <div>
+              <h3>Auto Haptics <span class="badge-new">NEW</span></h3>
+              <p>Generates rumble from game audio — works even when the game sends no haptic commands.</p>
+            </div>
+          </div>
+          <div class="control-stack">
+
+            <div class="control-row full-row">
+              <div><strong>Mode</strong></div>
+              <select id="auto_haptics_enable">
+                <option value="0">Off — native ch3/ch4 only (original behaviour)</option>
+                <option value="1">Mix — native haptics + audio-derived blended</option>
+                <option value="2" selected>Replace — audio-derived only (recommended)</option>
+              </select>
+            </div>
+
+            <div class="control-row">
+              <div><strong>Intensity</strong><p>Strength of audio-derived haptics [0 – 200 %]</p></div>
+              <div class="range-inputs">
+                <input type="range" id="auto_haptics_gain" min="0" max="200" step="5" value="100">
+                <input type="number" id="val_auto_haptics_gain" min="0" max="200" step="5" value="100">
+              </div>
+            </div>
+
+            <div class="control-row">
+              <div><strong>Low-pass Cutoff</strong><p>80 Hz = bass rumble · 400 Hz = maximum detail</p></div>
+              <div class="range-inputs">
+                <input type="range" id="auto_haptics_lowpass" min="0" max="3" step="1" value="0">
+                <input type="text" id="val_auto_haptics_lowpass" value="80 Hz" readonly>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ── POWER ─────────────────────────────────────────────────────── -->
+        <section class="config-section">
+          <div class="config-section-heading">
+            <div class="config-section-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64A9 9 0 1 1 5.64 5.64"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+            </div>
+            <div>
+              <h3>Power &amp; indicators</h3>
+              <p>Control inactive disconnect and Pico LED behavior.</p>
+            </div>
+          </div>
+          <div class="control-stack compact-stack">
+
+            <div class="control-row">
+              <div><strong>Inactive time</strong><p>Auto-disconnect delay · minutes</p></div>
+              <div class="range-inputs">
+                <input type="range" id="inactive_time" min="5" max="60" step="1" value="30">
+                <input type="number" id="val_inactive_time" min="5" max="60" step="1" value="30">
+              </div>
+            </div>
+
+            <div class="control-row toggle-row">
+              <strong>Disable inactive disconnect</strong>
+              <label class="toggle justify-self-end">
+                <input type="checkbox" id="disable_inactive_disconnect">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="control-row toggle-row">
+              <strong>Disable Pico LED</strong>
+              <label class="toggle justify-self-end">
+                <input type="checkbox" id="disable_pico_led">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ── PERFORMANCE ───────────────────────────────────────────────── -->
+        <section class="config-section">
+          <div class="config-section-heading">
+            <div class="config-section-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            </div>
+            <div>
+              <h3>Performance</h3>
+              <p>Choose the HID reporting polling rate.</p>
+            </div>
+          </div>
+          <div class="control-stack compact-stack">
+            <div class="control-row full-row">
+              <div><strong>Polling rate mode</strong></div>
+              <select id="polling_rate_mode">
+                <option value="0">250 Hz</option>
+                <option value="1">500 Hz</option>
+                <option value="2">Real-Time (1000 Hz)</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── COMPATIBILITY ─────────────────────────────────────────────── -->
+        <section class="config-section">
+          <div class="config-section-heading">
+            <div class="config-section-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            </div>
+            <div>
+              <h3>Compatibility</h3>
+              <p>Toggle controller recognition mode.</p>
+            </div>
+          </div>
+          <div class="control-stack compact-stack">
+            <div class="control-row full-row">
+              <div><strong>Controller mode</strong></div>
+              <select id="controller_mode">
+                <option value="0">DS5 — DualSense (0x0CE6)</option>
+                <option value="1">DSE — DualSense Edge (0x0DF2)</option>
+                <option value="2" selected>Auto — detect from paired device</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+      </div><!-- /config-sections -->
+    </div><!-- /config-panel -->
+
+    <!-- ── SIDE PANEL ───────────────────────────────────────────────────── -->
+    <div class="panel side-panel">
+      <div class="panel-title">
+        <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        <h2>State</h2>
+      </div>
+
+      <div class="state-box" id="stateBox">
+        <strong>Not connected</strong>
+        <p>Connect a DS5 Bridge device to read and write configuration.</p>
+      </div>
+
+      <div id="reconnectWarning" class="state-warning" style="display:none">
+        Polling rate or controller mode changed — click <strong>Reconnect USB</strong> for it to take effect.
+      </div>
+
+      <div class="action-stack" id="actionStack" style="display:none">
+        <button id="btnReconnect" class="btn btn-outline">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          Reconnect USB
+        </button>
+        <button id="btnReset" class="btn btn-danger">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-5.44"/></svg>
+          Reset to Defaults
+        </button>
+      </div>
+    </div>
+
+  </div><!-- /content-grid -->
+
+  <!-- ═══ FOOTER ════════════════════════════════════════════════════════════ -->
+  <footer class="app-footer">
+    <div class="footer-copy">
+      <strong>DS5Dongle</strong>
+      <span>Auto Haptics Edition · Open Source</span>
+    </div>
+    <a href="https://github.com/loteran/DS5Dongle" class="footer-link" target="_blank" rel="noopener">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+      GitHub
+    </a>
+  </footer>
+
+</div><!-- /app-shell -->
+
 <script>
-// ─── Constants ───────────────────────────────────────────────────────────────
-const SONY_VID = 0x054C;
-const DS5_PID  = 0x0CE6;
-const DSE_PID  = 0x0DF2;
+// ── Constants ────────────────────────────────────────────────────────────────
+const SONY_VID   = 0x054C;
+const DS5_PID    = 0x0CE6;
+const DSE_PID    = 0x0DF2;
+const CONFIG_SIZE = 17;
+const LP_FREQS   = ['80 Hz', '160 Hz', '250 Hz', '400 Hz'];
 
 // Config_body layout (17 bytes LE):
-//  [0:4]  float haptics_gain
-//  [4:8]  float speaker_volume
+//  [0:4]  float haptics_gain        (1.0 – 2.0)
+//  [4:8]  float speaker_volume      (-100 – 0 dB)
 //  [8]    uint8 inactive_time
 //  [9]    uint8 disable_inactive_disconnect
 //  [10]   uint8 disable_pico_led
 //  [11]   uint8 polling_rate_mode
 //  [12]   uint8 audio_buffer_length
 //  [13]   uint8 controller_mode
-//  [14]   uint8 auto_haptics_enable   ← NEW
-//  [15]   uint8 auto_haptics_gain     ← NEW
-//  [16]   uint8 auto_haptics_lowpass  ← NEW
-const CONFIG_SIZE = 17;
+//  [14]   uint8 auto_haptics_enable
+//  [15]   uint8 auto_haptics_gain
+//  [16]   uint8 auto_haptics_lowpass
 
-// ─── State ───────────────────────────────────────────────────────────────────
+const DEFAULTS = {
+  haptics_gain: 1, speaker_volume: -100, inactive_time: 10,
+  disable_inactive_disconnect: false, disable_pico_led: false,
+  polling_rate_mode: 0, audio_buffer_length: 64, controller_mode: 2,
+  auto_haptics_enable: 2, auto_haptics_gain: 100, auto_haptics_lowpass: 0,
+};
+
+// ── State ────────────────────────────────────────────────────────────────────
 let device = null;
+let savedPollingMode    = null;
+let savedControllerMode = null;
 
-// ─── UI helpers ──────────────────────────────────────────────────────────────
+// ── Helpers ──────────────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
-
-function setConnected(connected, label = '') {
-  const btn = $('btnConnect');
-  $('btnRead').disabled  = !connected;
-  $('btnSave').disabled  = !connected;
-  if (connected) {
-    btn.className = btn.className.replace('bg-blue-600 hover:bg-blue-500', 'bg-green-600 hover:bg-red-600');
-    $('connectIcon').textContent = '✓';
-    $('connectLabel').textContent = 'Disconnect';
-    $('statusBar').classList.remove('hidden');
-    $('statusText').textContent = label;
-    $('chromeNotice').classList.add('hidden');
-  } else {
-    btn.className = btn.className.replace('bg-green-600 hover:bg-red-600', 'bg-blue-600 hover:bg-blue-500');
-    $('connectIcon').textContent = '⚡';
-    $('connectLabel').textContent = 'Connect';
-    $('statusBar').classList.add('hidden');
-  }
-}
 
 function toast(msg, ok = true) {
   const el = document.createElement('div');
-  el.className = `fixed bottom-6 left-1/2 -translate-x-1/2 px-5 py-3 rounded-xl text-white text-sm font-semibold shadow-xl z-50 transition-all ${ok ? 'bg-green-600' : 'bg-red-600'}`;
+  el.className = 'toast';
+  el.style.background = ok ? '#16a34a' : '#dc2626';
   el.textContent = msg;
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 2800);
 }
 
-// ─── Live slider labels ───────────────────────────────────────────────────────
-function bindSlider(id, fmt) {
-  const el = $(id);
-  const lbl = $('val_' + id);
-  if (!el || !lbl) return;
-  el.addEventListener('input', () => { lbl.textContent = fmt(el.value); });
+function setConnected(connected, label = '') {
+  const btn = $('btnConnect');
+  $('btnRead').disabled = !connected;
+  $('btnSave').disabled = !connected;
+
+  if (connected) {
+    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Disconnect`;
+    btn.style.background = 'var(--destructive)';
+    $('statusPill').className = 'status-pill connected';
+    $('statusText').textContent = 'Connected';
+    $('chromeNotice').style.display = 'none';
+    $('deviceCard').style.display   = 'block';
+    $('actionStack').style.display  = 'flex';
+    const name = label.split(' (')[0] || 'DS5 Bridge';
+    const id   = (label.match(/\(([^)]+)\)/) || [])[1] || '';
+    $('deviceName').textContent = name;
+    $('deviceId').textContent   = id;
+    updateState('Reading config from device…');
+  } else {
+    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Connect`;
+    btn.style.background = '';
+    $('statusPill').className = 'status-pill';
+    $('statusText').textContent = 'Not connected';
+    $('deviceCard').style.display   = 'none';
+    $('actionStack').style.display  = 'none';
+    $('reconnectWarning').style.display = 'none';
+    updateState('Not connected', 'Connect a DS5 Bridge device to read and write configuration.');
+    savedPollingMode = savedControllerMode = null;
+  }
 }
 
-const LP_FREQS = ['80 Hz', '160 Hz', '250 Hz', '400 Hz'];
+function updateState(title, detail = '') {
+  $('stateBox').innerHTML = `<strong>${title}</strong>${detail ? `<p>${detail}</p>` : ''}`;
+}
 
-bindSlider('haptics_gain',          v => (v / 100).toFixed(2));
-bindSlider('speaker_volume',        v => `${v} dB`);
-bindSlider('audio_buffer_length',   v => v);
-bindSlider('inactive_time',         v => `${v} min`);
-bindSlider('auto_haptics_gain',     v => `${v}%`);
-bindSlider('auto_haptics_lowpass',  v => LP_FREQS[v] ?? `${v}`);
+function checkReconnectNeeded() {
+  const pm = $('polling_rate_mode').value;
+  const cm = $('controller_mode').value;
+  const needed = (savedPollingMode !== null && pm !== savedPollingMode)
+              || (savedControllerMode !== null && cm !== savedControllerMode);
+  $('reconnectWarning').style.display = needed ? 'block' : 'none';
+}
 
-// ─── Pack / unpack config ─────────────────────────────────────────────────────
+// ── Slider ↔ Number sync ─────────────────────────────────────────────────────
+function bindSliderNum(rangeId, numId, toDisplay, fromDisplay) {
+  const range = $(rangeId), num = $(numId);
+  if (!range || !num) return;
+  range.addEventListener('input', () => {
+    num.value = toDisplay ? toDisplay(range.value) : range.value;
+  });
+  if (num.type !== 'text') {
+    num.addEventListener('change', () => {
+      const v = fromDisplay ? fromDisplay(num.value) : parseFloat(num.value);
+      const clamped = Math.max(parseFloat(range.min), Math.min(parseFloat(range.max), v));
+      range.value = clamped;
+      num.value = toDisplay ? toDisplay(clamped) : clamped;
+    });
+  }
+}
+
+bindSliderNum('haptics_gain',        'val_haptics_gain',        v => parseFloat(v).toFixed(2), v => v);
+bindSliderNum('speaker_volume',      'val_speaker_volume',      null, null);
+bindSliderNum('audio_buffer_length', 'val_audio_buffer_length', null, null);
+bindSliderNum('inactive_time',       'val_inactive_time',       null, null);
+bindSliderNum('auto_haptics_gain',   'val_auto_haptics_gain',   null, null);
+
+$('auto_haptics_lowpass').addEventListener('input', function () {
+  $('val_auto_haptics_lowpass').value = LP_FREQS[this.value] ?? this.value;
+});
+
+$('polling_rate_mode').addEventListener('change', checkReconnectNeeded);
+$('controller_mode').addEventListener('change', checkReconnectNeeded);
+
+// ── Pack / Unpack ────────────────────────────────────────────────────────────
 function packConfig() {
   const buf = new ArrayBuffer(CONFIG_SIZE);
   const dv  = new DataView(buf);
   const u8  = new Uint8Array(buf);
 
-  dv.setFloat32(0, parseFloat($('haptics_gain').value) / 100,  true);
+  dv.setFloat32(0, parseFloat($('haptics_gain').value),         true);
   dv.setFloat32(4, parseFloat($('speaker_volume').value),       true);
   u8[8]  = parseInt($('inactive_time').value);
   u8[9]  = $('disable_inactive_disconnect').checked ? 1 : 0;
@@ -304,97 +569,109 @@ function packConfig() {
 }
 
 function applyConfig(bytes) {
-  // bytes starts at byte 1 of the feature report (skip report ID)
-  const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-
-  const hg = dv.getFloat32(0, true);
-  const sv = dv.getFloat32(4, true);
-  const it = bytes[8];
+  const dv  = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const hg  = dv.getFloat32(0, true);
+  const sv  = dv.getFloat32(4, true);
+  const it  = bytes[8];
   const did = bytes[9];
   const led = bytes[10];
   const pm  = bytes[11];
   const abl = bytes[12];
   const cm  = bytes[13];
-  const ahe = bytes[14] !== undefined ? bytes[14] : 2;
-  const ahg = bytes[15] !== undefined ? bytes[15] : 100;
-  const ahl = bytes[16] !== undefined ? bytes[16] : 0;
+  const ahe = bytes[14] ?? 2;
+  const ahg = bytes[15] ?? 100;
+  const ahl = bytes[16] ?? 0;
 
-  $('haptics_gain').value   = Math.round(hg * 100);
-  $('val_haptics_gain').textContent = hg.toFixed(2);
-
-  $('speaker_volume').value = Math.round(sv);
-  $('val_speaker_volume').textContent = `${Math.round(sv)} dB`;
-
-  $('inactive_time').value  = it;
-  $('val_inactive_time').textContent = `${it} min`;
-
+  $('haptics_gain').value         = hg;
+  $('val_haptics_gain').value     = hg.toFixed(2);
+  $('speaker_volume').value       = Math.round(sv);
+  $('val_speaker_volume').value   = Math.round(sv);
+  $('inactive_time').value        = it;
+  $('val_inactive_time').value    = it;
   $('disable_inactive_disconnect').checked = did === 1;
-  $('disable_pico_led').checked = led === 1;
-
-  $('polling_rate_mode').value = pm;
-  $('audio_buffer_length').value = abl;
-  $('val_audio_buffer_length').textContent = abl;
-  $('controller_mode').value = cm;
-
-  $('auto_haptics_enable').value = ahe;
-  $('auto_haptics_gain').value   = ahg;
-  $('val_auto_haptics_gain').textContent = `${ahg}%`;
+  $('disable_pico_led').checked            = led === 1;
+  $('polling_rate_mode').value    = pm;
+  $('audio_buffer_length').value  = abl;
+  $('val_audio_buffer_length').value = abl;
+  $('controller_mode').value      = cm;
+  $('auto_haptics_enable').value  = ahe;
+  $('auto_haptics_gain').value    = ahg;
+  $('val_auto_haptics_gain').value = ahg;
   $('auto_haptics_lowpass').value = ahl;
-  $('val_auto_haptics_lowpass').textContent = LP_FREQS[ahl] ?? `${ahl}`;
+  $('val_auto_haptics_lowpass').value = LP_FREQS[ahl] ?? ahl;
+
+  savedPollingMode    = String(pm);
+  savedControllerMode = String(cm);
+  $('reconnectWarning').style.display = 'none';
+  updateState('Config loaded', 'All values read from device flash.');
 }
 
-// ─── HID communication ────────────────────────────────────────────────────────
+function applyDefaults() {
+  const c = DEFAULTS;
+  $('haptics_gain').value         = c.haptics_gain;
+  $('val_haptics_gain').value     = c.haptics_gain.toFixed(2);
+  $('speaker_volume').value       = c.speaker_volume;
+  $('val_speaker_volume').value   = c.speaker_volume;
+  $('inactive_time').value        = c.inactive_time;
+  $('val_inactive_time').value    = c.inactive_time;
+  $('disable_inactive_disconnect').checked = c.disable_inactive_disconnect;
+  $('disable_pico_led').checked            = c.disable_pico_led;
+  $('polling_rate_mode').value    = c.polling_rate_mode;
+  $('audio_buffer_length').value  = c.audio_buffer_length;
+  $('val_audio_buffer_length').value = c.audio_buffer_length;
+  $('controller_mode').value      = c.controller_mode;
+  $('auto_haptics_enable').value  = c.auto_haptics_enable;
+  $('auto_haptics_gain').value    = c.auto_haptics_gain;
+  $('val_auto_haptics_gain').value = c.auto_haptics_gain;
+  $('auto_haptics_lowpass').value = c.auto_haptics_lowpass;
+  $('val_auto_haptics_lowpass').value = LP_FREQS[c.auto_haptics_lowpass];
+  checkReconnectNeeded();
+}
+
+// ── HID operations ───────────────────────────────────────────────────────────
 async function readConfig() {
   if (!device) return;
   try {
     const report = await device.receiveFeatureReport(0xF7);
-    const bytes  = new Uint8Array(report.buffer, 1); // skip report ID
+    const bytes  = new Uint8Array(report.buffer, 1);
     if (bytes.length < CONFIG_SIZE) {
-      toast('Config too short — flash the latest firmware first.', false);
-      return;
+      toast('Config too short — flash the latest firmware first.', false); return;
     }
     applyConfig(bytes);
     toast('Config loaded from device.');
-  } catch (e) {
-    toast(`Read failed: ${e.message}`, false);
-  }
+  } catch (e) { toast(`Read failed: ${e.message}`, false); }
 }
 
 async function saveConfig() {
   if (!device) return;
   try {
     const cfg = packConfig();
-
-    // 0xF6 0x01 = update in memory
     await device.sendFeatureReport(0xF6, new Uint8Array([0x01, ...cfg]));
-    // 0xF6 0x02 = save to flash
     await device.sendFeatureReport(0xF6, new Uint8Array([0x02]));
-    // 0xF6 0x03 = USB reconnect — the Pico disconnects immediately, so the
-    // browser may throw before receiving the ACK. This is expected and harmless.
-    try {
-      await device.sendFeatureReport(0xF6, new Uint8Array([0x03]));
-    } catch (_) { /* device disconnected to reconnect — normal */ }
-
+    savedPollingMode    = $('polling_rate_mode').value;
+    savedControllerMode = $('controller_mode').value;
+    $('reconnectWarning').style.display = 'none';
     toast('Configuration saved to flash!');
-  } catch (e) {
-    toast(`Save failed: ${e.message}`, false);
-  }
+    updateState('Config saved', 'Settings written to device flash.');
+  } catch (e) { toast(`Save failed: ${e.message}`, false); }
 }
 
-// ─── Connect / disconnect ─────────────────────────────────────────────────────
+async function reconnectUSB() {
+  if (!device) return;
+  try {
+    await device.sendFeatureReport(0xF6, new Uint8Array([0x03]));
+    toast('USB reconnect command sent.');
+    $('reconnectWarning').style.display = 'none';
+  } catch (e) { toast(`Reconnect failed: ${e.message}`, false); }
+}
+
 async function connect() {
   if (device) {
-    await device.close();
-    device = null;
-    setConnected(false);
-    return;
+    await device.close(); device = null; setConnected(false); return;
   }
-
   if (!navigator.hid) {
-    toast('WebHID not supported in this browser. Use Chrome or Edge.', false);
-    return;
+    toast('WebHID not supported — use Chrome or Edge.', false); return;
   }
-
   try {
     const filters = [
       { vendorId: SONY_VID, productId: DS5_PID },
@@ -402,30 +679,23 @@ async function connect() {
     ];
     const devices = await navigator.hid.requestDevice({ filters });
     if (!devices.length) return;
-
     device = devices[0];
     await device.open();
-
     const label = `${device.productName} (${device.vendorId.toString(16).toUpperCase()}:${device.productId.toString(16).toUpperCase()})`;
     setConnected(true, label);
-
     device.addEventListener('inputreport', () => {});
-
-    // Auto-read config on connect
     await readConfig();
-
-  } catch (e) {
-    toast(`Connection failed: ${e.message}`, false);
-  }
+  } catch (e) { toast(`Connection failed: ${e.message}`, false); }
 }
 
-// ─── Wiring ───────────────────────────────────────────────────────────────────
+// ── Wiring ───────────────────────────────────────────────────────────────────
 $('btnConnect').addEventListener('click', connect);
 $('btnRead').addEventListener('click', readConfig);
 $('btnSave').addEventListener('click', saveConfig);
+$('btnReconnect').addEventListener('click', reconnectUSB);
+$('btnReset').addEventListener('click', applyDefaults);
 
-// Hide Chrome notice if WebHID is available
-if (navigator.hid) $('chromeNotice').classList.add('hidden');
+if (navigator.hid) $('chromeNotice').style.display = 'none';
 </script>
 </body>
 </html>
