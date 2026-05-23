@@ -333,6 +333,38 @@ select:focus{border-color:var(--color-blue-600)}
               </label>
             </div>
 
+            <div class="control-row toggle-row">
+              <div><strong>Power Off shortcut</strong><p>PS + Triangle turns off the controller</p></div>
+              <label class="toggle justify-self-end">
+                <input type="checkbox" id="enable_poweroff_shortcut" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ── INPUT ────────────────────────────────────────────────────── -->
+        <section class="config-section">
+          <div class="config-section-heading">
+            <div class="config-section-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M12 12h.01"/><path d="M17 12h.01"/><path d="M7 12h.01"/></svg>
+            </div>
+            <div>
+              <h3>Input</h3>
+              <p>Touchpad and input filtering.</p>
+            </div>
+          </div>
+          <div class="control-stack compact-stack">
+
+            <div class="control-row toggle-row">
+              <div><strong>Touchpad</strong><p>PS + Circle toggles during play</p></div>
+              <label class="toggle justify-self-end">
+                <input type="checkbox" id="enable_touchpad" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+
           </div>
         </section>
 
@@ -434,12 +466,12 @@ select:focus{border-color:var(--color-blue-600)}
 const SONY_VID   = 0x054C;
 const DS5_PID    = 0x0CE6;
 const DSE_PID    = 0x0DF2;
-const CONFIG_SIZE = 17;
+const CONFIG_SIZE = 19;
 const LP_FREQS   = ['80 Hz', '160 Hz', '250 Hz', '400 Hz'];
 
-// Config_body layout (17 bytes LE):
-//  [0:4]  float haptics_gain        (1.0 – 2.0)
-//  [4:8]  float speaker_volume      (-100 – 0 dB)
+// Config_body layout (19 bytes LE, starting after config_version):
+//  [0:4]  float haptics_gain
+//  [4:8]  float speaker_volume
 //  [8]    uint8 inactive_time
 //  [9]    uint8 disable_inactive_disconnect
 //  [10]   uint8 disable_pico_led
@@ -449,12 +481,15 @@ const LP_FREQS   = ['80 Hz', '160 Hz', '250 Hz', '400 Hz'];
 //  [14]   uint8 auto_haptics_enable
 //  [15]   uint8 auto_haptics_gain
 //  [16]   uint8 auto_haptics_lowpass
+//  [17]   uint8 enable_poweroff_shortcut
+//  [18]   uint8 enable_touchpad
 
 const DEFAULTS = {
   haptics_gain: 1, speaker_volume: -100, inactive_time: 10,
   disable_inactive_disconnect: false, disable_pico_led: false,
   polling_rate_mode: 0, audio_buffer_length: 64, controller_mode: 2,
   auto_haptics_enable: 2, auto_haptics_gain: 100, auto_haptics_lowpass: 0,
+  enable_poweroff_shortcut: true, enable_touchpad: true,
 };
 
 // ── State ────────────────────────────────────────────────────────────────────
@@ -564,6 +599,8 @@ function packConfig() {
   u8[14] = parseInt($('auto_haptics_enable').value);
   u8[15] = parseInt($('auto_haptics_gain').value);
   u8[16] = parseInt($('auto_haptics_lowpass').value);
+  u8[17] = $('enable_poweroff_shortcut').checked ? 1 : 0;
+  u8[18] = $('enable_touchpad').checked ? 1 : 0;
 
   return u8;
 }
@@ -581,6 +618,8 @@ function applyConfig(bytes) {
   const ahe = bytes[14] ?? 2;
   const ahg = bytes[15] ?? 100;
   const ahl = bytes[16] ?? 0;
+  const eps = bytes[17] ?? 1;
+  const etp = bytes[18] ?? 1;
 
   $('haptics_gain').value         = hg;
   $('val_haptics_gain').value     = hg.toFixed(2);
@@ -599,6 +638,8 @@ function applyConfig(bytes) {
   $('val_auto_haptics_gain').value = ahg;
   $('auto_haptics_lowpass').value = ahl;
   $('val_auto_haptics_lowpass').value = LP_FREQS[ahl] ?? ahl;
+  $('enable_poweroff_shortcut').checked = eps === 1;
+  $('enable_touchpad').checked          = etp === 1;
 
   savedPollingMode    = String(pm);
   savedControllerMode = String(cm);
@@ -625,6 +666,8 @@ function applyDefaults() {
   $('val_auto_haptics_gain').value = c.auto_haptics_gain;
   $('auto_haptics_lowpass').value = c.auto_haptics_lowpass;
   $('val_auto_haptics_lowpass').value = LP_FREQS[c.auto_haptics_lowpass];
+  $('enable_poweroff_shortcut').checked = c.enable_poweroff_shortcut;
+  $('enable_touchpad').checked          = c.enable_touchpad;
   checkReconnectNeeded();
 }
 
