@@ -334,6 +334,14 @@ select:focus{border-color:var(--color-blue-600)}
             </div>
 
             <div class="control-row toggle-row">
+              <div><strong>Battery color indicator</strong><p>Lightbar: blue → green → yellow → red as battery drains</p></div>
+              <label class="toggle justify-self-end">
+                <input type="checkbox" id="battery_color_enable" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="control-row toggle-row">
               <div><strong>Power Off shortcut</strong><p>Hold PS + the selected button to turn off the controller</p></div>
               <label class="toggle justify-self-end">
                 <input type="checkbox" id="enable_poweroff_shortcut" checked>
@@ -496,7 +504,7 @@ select:focus{border-color:var(--color-blue-600)}
 const SONY_VID   = 0x054C;
 const DS5_PID    = 0x0CE6;
 const DSE_PID    = 0x0DF2;
-const CONFIG_SIZE = 22;
+const CONFIG_SIZE = 23;
 
 // Config_body layout (22 bytes LE, starting after config_version):
 //  [0:4]  float  haptics_gain
@@ -514,6 +522,7 @@ const CONFIG_SIZE = 22;
 //  [19]   uint8  enable_touchpad
 //  [20]   uint8  poweroff_button  (0=Square,1=Cross,2=Circle,3=Triangle,4=L1,5=R1,6=Create,7=Options,8=Mute)
 //  [21]   uint8  touchpad_button  (same enum)
+//  [22]   uint8  battery_color_enable  (1=on, 0=off)
 
 const DEFAULTS = {
   haptics_gain: 1, speaker_volume: -100, inactive_time: 10,
@@ -522,6 +531,7 @@ const DEFAULTS = {
   auto_haptics_enable: 2, auto_haptics_gain: 100, auto_haptics_lowpass: 80,
   enable_poweroff_shortcut: true, enable_touchpad: true,
   poweroff_button: 3, touchpad_button: 2,
+  battery_color_enable: true,
 };
 
 // ── State ────────────────────────────────────────────────────────────────────
@@ -632,6 +642,7 @@ function packConfig() {
   u8[19] = $('enable_touchpad').checked ? 1 : 0;
   u8[20] = parseInt($('poweroff_button').value);
   u8[21] = parseInt($('touchpad_button').value);
+  u8[22] = $('battery_color_enable').checked ? 1 : 0;
 
   return u8;
 }
@@ -653,6 +664,7 @@ function applyConfig(bytes) {
   const etp = bytes[19] ?? 1;
   const pob = bytes[20] ?? 3;
   const tpb = bytes[21] ?? 2;
+  const bce = bytes[22] ?? 1;
 
   $('haptics_gain').value         = hg;
   $('val_haptics_gain').value     = hg.toFixed(2);
@@ -675,6 +687,7 @@ function applyConfig(bytes) {
   $('enable_touchpad').checked          = etp === 1;
   $('poweroff_button').value            = pob;
   $('touchpad_button').value            = tpb;
+  $('battery_color_enable').checked     = bce === 1;
 
   savedPollingMode    = String(pm);
   savedControllerMode = String(cm);
@@ -705,6 +718,7 @@ function applyDefaults() {
   $('enable_touchpad').checked          = c.enable_touchpad;
   $('poweroff_button').value            = c.poweroff_button;
   $('touchpad_button').value            = c.touchpad_button;
+  $('battery_color_enable').checked     = c.battery_color_enable;
   checkReconnectNeeded();
 }
 
