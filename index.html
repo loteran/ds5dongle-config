@@ -505,6 +505,18 @@ const SONY_VID   = 0x054C;
 const DS5_PID    = 0x0CE6;
 const DSE_PID    = 0x0DF2;
 const CONFIG_SIZE = 23;
+// 0xF6 feature report payload length declared in the HID descriptor (Report Count 63).
+// Windows' HidD_SetFeature rejects buffers shorter than this, so every write must be
+// zero-padded to the full size (Linux/hidraw tolerates short writes, Windows does not).
+const REPORT_SIZE = 63;
+
+// Build a 0xF6 command report: [cmd, ...payload] zero-padded to REPORT_SIZE bytes.
+function picoReport(cmd, payload = []) {
+  const buf = new Uint8Array(REPORT_SIZE);
+  buf[0] = cmd;
+  buf.set(payload, 1);
+  return buf;
+}
 
 // Config_body layout (22 bytes LE, starting after config_version):
 //  [0:4]  float  haptics_gain
@@ -740,8 +752,8 @@ async function saveConfig() {
   if (!device) return;
   try {
     const cfg = packConfig();
-    await device.sendFeatureReport(0xF6, new Uint8Array([0x01, ...cfg]));
-    await device.sendFeatureReport(0xF6, new Uint8Array([0x02]));
+    await device.sendFeatureReport(0xF6, picoReport(0x01, cfg));
+    await device.sendFeatureReport(0xF6, picoReport(0x02));
     savedPollingMode    = $('polling_rate_mode').value;
     savedControllerMode = $('controller_mode').value;
     $('reconnectWarning').style.display = 'none';
@@ -753,7 +765,7 @@ async function saveConfig() {
 async function reconnectUSB() {
   if (!device) return;
   try {
-    await device.sendFeatureReport(0xF6, new Uint8Array([0x03]));
+    await device.sendFeatureReport(0xF6, picoReport(0x03));
     toast('USB reconnect command sent.');
     $('reconnectWarning').style.display = 'none';
   } catch (e) { toast(`Reconnect failed: ${e.message}`, false); }
