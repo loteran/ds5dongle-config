@@ -271,9 +271,9 @@ select:focus{border-color:var(--color-blue-600)}
             <div class="control-row full-row">
               <div><strong>Mode</strong></div>
               <select id="auto_haptics_enable">
-                <option value="0">Off — native ch3/ch4 only (original behaviour)</option>
-                <option value="1">Mix — native haptics + audio-derived blended</option>
-                <option value="2" selected>Replace — audio-derived only (recommended)</option>
+                <option value="0">Full audio — raw ch3/ch4 passthrough</option>
+                <option value="1">Bass mix — ch3/ch4 + pad-speaker bass, blended</option>
+                <option value="2" selected>Pad speaker — bass from the pad's own speaker audio only</option>
               </select>
             </div>
 
@@ -294,12 +294,12 @@ select:focus{border-color:var(--color-blue-600)}
             </div>
 
             <div class="control-row">
-              <div><strong>Mute speaker (Replace mode)</strong><p>Silence the controller speaker when Replace mode is active</p></div>
+              <div><strong>Mute speaker (Pad speaker mode)</strong><p>Silence the controller speaker when Pad speaker mode is active</p></div>
               <input type="checkbox" id="auto_haptics_mute_replace">
             </div>
 
             <div class="control-row">
-              <div><strong>Mute speaker (Mix mode)</strong><p>Silence the controller speaker when Mix mode is active</p></div>
+              <div><strong>Mute speaker (Bass mix mode)</strong><p>Silence the controller speaker when Bass mix mode is active</p></div>
               <input type="checkbox" id="auto_haptics_mute_mix">
             </div>
 
@@ -555,8 +555,8 @@ function picoReport(cmd, payload = []) {
 //  [21]   uint8  touchpad_button  (same enum)
 //  [22]   uint8  battery_color_enable  (1=on, 0=off)
 //  [23]   uint8  wake_enable  (1=on, 0=off) — added later, optional on read
-//  [24]   uint8  auto_haptics_mute_replace  (1=mute speaker in Replace mode)
-//  [25]   uint8  auto_haptics_mute_mix      (1=mute speaker in Mix mode)
+//  [24]   uint8  auto_haptics_mute_replace  (1=mute speaker in Pad speaker mode)
+//  [25]   uint8  auto_haptics_mute_mix      (1=mute speaker in Bass mix mode)
 
 const DEFAULTS = {
   haptics_gain: 1, speaker_volume: -100, inactive_time: 10,
