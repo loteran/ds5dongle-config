@@ -322,8 +322,8 @@ select:focus{border-color:var(--color-blue-600)}
             <div class="control-row">
               <div><strong>Inactive time</strong><p>Auto-disconnect delay · minutes</p></div>
               <div class="range-inputs">
-                <input type="range" id="inactive_time" min="5" max="60" step="1" value="30">
-                <input type="number" id="val_inactive_time" min="5" max="60" step="1" value="30">
+                <input type="range" id="inactive_time" min="0" max="60" step="1" value="30">
+                <input type="number" id="val_inactive_time" min="0" max="60" step="1" value="30">
               </div>
             </div>
 
@@ -522,8 +522,8 @@ select:focus{border-color:var(--color-blue-600)}
 const SONY_VID   = 0x054C;
 const DS5_PID    = 0x0CE6;
 const DSE_PID    = 0x0DF2;
-const CONFIG_SIZE = 26;       // packed body length (haptics_gain … auto_haptics_mute_mix)
-const CONFIG_MIN_SIZE = 23;   // minimum readable layout; fields after wake_enable are optional on older firmware
+const CONFIG_SIZE = 30;       // packed body length (haptics_gain … trigger_reduce)
+const CONFIG_MIN_SIZE = 24;   // minimum pour lire l’UI actuelle (haptics_gain … auto_haptics_mute_mix)
 // 0xF6 feature report payload length declared in the HID descriptor (Report Count 63).
 // Windows' HidD_SetFeature rejects buffers shorter than this, so every write must be
 // zero-padded to the full size (Linux/hidraw tolerates short writes, Windows does not).
@@ -537,26 +537,33 @@ function picoReport(cmd, payload = []) {
   return buf;
 }
 
-// Config_body layout (22 bytes LE, starting after config_version):
+// Config_body layout (30 bytes LE, starting after config_version):
 //  [0:4]  float  haptics_gain
-//  [4:8]  float  speaker_volume
-//  [8]    uint8  inactive_time
-//  [9]    uint8  disable_inactive_disconnect
-//  [10]   uint8  disable_pico_led
-//  [11]   uint8  polling_rate_mode
-//  [12]   uint8  audio_buffer_length
-//  [13]   uint8  controller_mode
-//  [14]   uint8  auto_haptics_enable
-//  [15]   uint8  auto_haptics_gain
-//  [16:18] uint16 auto_haptics_lowpass_hz  (LE, free Hz value 20–400)
-//  [18]   uint8  enable_poweroff_shortcut
-//  [19]   uint8  enable_touchpad
-//  [20]   uint8  poweroff_button  (0=Square,1=Cross,2=Circle,3=Triangle,4=L1,5=R1,6=Create,7=Options,8=Mute)
-//  [21]   uint8  touchpad_button  (same enum)
-//  [22]   uint8  battery_color_enable  (1=on, 0=off)
-//  [23]   uint8  wake_enable  (1=on, 0=off) — added later, optional on read
-//  [24]   uint8  auto_haptics_mute_replace  (1=mute speaker in Pad speaker mode)
-//  [25]   uint8  auto_haptics_mute_mix      (1=mute speaker in Bass mix mode)
+//  [4]     uint8  speaker_volume
+//  [5]     uint8  headset_volume
+//  [6]     uint8  speaker_gain
+//  [7]     uint8  inactive_time
+//  [8]     uint8  disable_pico_led
+//  [9]     uint8  polling_rate_mode
+//  [10]    uint8  audio_buffer_length
+//  [11]    uint8  controller_mode
+//  [12]    uint8  auto_haptics_enable
+//  [13]    uint8  auto_haptics_gain
+//  [14:16] uint16 auto_haptics_lowpass_hz  (LE, free Hz value 20–400)
+//  [16]    uint8  enable_poweroff_shortcut
+//  [17]    uint8  enable_touchpad
+//  [18]    uint8  poweroff_button
+//  [19]    uint8  touchpad_button
+//  [20]    uint8  battery_color_enable
+//  [21]    uint8  wake_enable
+//  [22]    uint8  auto_haptics_mute_replace
+//  [23]    uint8  auto_haptics_mute_mix
+//  [24]    uint8  enable_usb_sn
+//  [25]    uint8  ps_shortcut_enabled
+//  [26]    uint8  disable_mic
+//  [27]    uint8  disable_speaker
+//  [28]    uint8  enable_wake
+//  [29]    uint8  trigger_reduce
 
 const DEFAULTS = {
   haptics_gain: 1, speaker_volume: -100, inactive_time: 10,
@@ -572,8 +579,10 @@ const DEFAULTS = {
 
 // ── State ────────────────────────────────────────────────────────────────────
 let device = null;
+let lastConfigBytes    = null; // Uint8Array(CONFIG_SIZE) from the last 0xF7 read
 let savedPollingMode    = null;
 let savedControllerMode = null;
+let inactiveTimeBackup = 30;
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
@@ -590,7 +599,8 @@ function toast(msg, ok = true) {
 function setConnected(connected, label = '') {
   const btn = $('btnConnect');
   $('btnRead').disabled = !connected;
-  $('btnSave').disabled = !connected;
+  // Le bouton Save reste désactivé jusqu’à un Read config réussi.
+  $('btnSave').disabled = true;
 
   if (connected) {
     btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Disconnect`;
@@ -614,6 +624,7 @@ function setConnected(connected, label = '') {
     $('actionStack').style.display  = 'none';
     $('reconnectWarning').style.display = 'none';
     updateState('Not connected', 'Connect a DS5 Bridge device to read and write configuration.');
+    lastConfigBytes = null;
     savedPollingMode = savedControllerMode = null;
   }
 }
@@ -654,83 +665,162 @@ bindSliderNum('inactive_time',       'val_inactive_time',       null, null);
 bindSliderNum('auto_haptics_gain',   'val_auto_haptics_gain',   null, null);
 bindSliderNum('auto_haptics_lowpass', 'val_auto_haptics_lowpass', null, null);
 
+// Sync inactive_time ↔ disable_inactive_disconnect
+inactiveTimeBackup = parseInt($('inactive_time').value, 10) || 30;
+$('disable_inactive_disconnect').addEventListener('change', () => {
+  const checked = $('disable_inactive_disconnect').checked;
+  if (checked) {
+    inactiveTimeBackup = parseInt($('inactive_time').value, 10) || inactiveTimeBackup;
+    $('inactive_time').value = 0;
+    $('val_inactive_time').value = 0;
+  } else {
+    const v = inactiveTimeBackup ?? 30;
+    $('inactive_time').value = v;
+    $('val_inactive_time').value = v;
+  }
+});
+
 $('polling_rate_mode').addEventListener('change', checkReconnectNeeded);
 $('controller_mode').addEventListener('change', checkReconnectNeeded);
 
 // ── Pack / Unpack ────────────────────────────────────────────────────────────
 function packConfig() {
-  const buf = new ArrayBuffer(CONFIG_SIZE);
-  const dv  = new DataView(buf);
-  const u8  = new Uint8Array(buf);
+  if (!lastConfigBytes) {
+    toast('Please read config from device first.', false);
+    return null;
+  }
+  if (lastConfigBytes.length < CONFIG_SIZE) {
+    toast('Config too short — impossible to save safely.', false);
+    return null;
+  }
 
-  dv.setFloat32(0, parseFloat($('haptics_gain').value),         true);
-  dv.setFloat32(4, parseFloat($('speaker_volume').value),       true);
-  u8[8]  = parseInt($('inactive_time').value);
-  u8[9]  = $('disable_inactive_disconnect').checked ? 1 : 0;
-  u8[10] = $('disable_pico_led').checked ? 1 : 0;
-  u8[11] = parseInt($('polling_rate_mode').value);
-  u8[12] = parseInt($('audio_buffer_length').value);
-  u8[13] = parseInt($('controller_mode').value);
-  u8[14] = parseInt($('auto_haptics_enable').value);
-  u8[15] = parseInt($('auto_haptics_gain').value);
-  dv.setUint16(16, parseInt($('auto_haptics_lowpass').value), true);
-  u8[18] = $('enable_poweroff_shortcut').checked ? 1 : 0;
-  u8[19] = $('enable_touchpad').checked ? 1 : 0;
-  u8[20] = parseInt($('poweroff_button').value);
-  u8[21] = parseInt($('touchpad_button').value);
-  u8[22] = $('battery_color_enable').checked ? 1 : 0;
-  u8[23] = $('wake_enable').checked ? 1 : 0;
-  u8[24] = $('auto_haptics_mute_replace').checked ? 1 : 0;
-  u8[25] = $('auto_haptics_mute_mix').checked ? 1 : 0;
+  // Patch-only : on copie les bytes relus, puis on remplace uniquement
+  // les champs exposés dans l’UI.
+  const out = new Uint8Array(lastConfigBytes);
+  const dv  = new DataView(out.buffer, out.byteOffset, out.byteLength);
 
-  return u8;
+  // [0:4] float haptics_gain
+  dv.setFloat32(0, parseFloat($('haptics_gain').value), true);
+
+  // [4] speaker_volume : u8 [0..127], l’UI affiche des dB négatifs [-100..0]
+  const dB = parseFloat($('speaker_volume').value);
+  let speakerVolumeU8 = Math.round(-dB);
+  speakerVolumeU8 = Math.max(0, Math.min(127, speakerVolumeU8));
+  out[4] = speakerVolumeU8;
+
+  // [7] inactive_time : u8 minutes (0 = disable)
+  let inactiveTime = parseInt($('inactive_time').value, 10);
+  if ($('disable_inactive_disconnect').checked) inactiveTime = 0;
+  inactiveTime = Math.max(0, Math.min(60, inactiveTime));
+  out[7] = inactiveTime;
+
+  // [8] disable_pico_led
+  out[8] = $('disable_pico_led').checked ? 1 : 0;
+
+  // [9] polling_rate_mode
+  out[9] = parseInt($('polling_rate_mode').value, 10);
+
+  // [10] audio_buffer_length
+  out[10] = parseInt($('audio_buffer_length').value, 10);
+
+  // [11] controller_mode
+  out[11] = parseInt($('controller_mode').value, 10);
+
+  // Auto haptics
+  out[12] = parseInt($('auto_haptics_enable').value, 10);
+  out[13] = parseInt($('auto_haptics_gain').value, 10);
+  dv.setUint16(14, parseInt($('auto_haptics_lowpass').value, 10), true);
+
+  // Input / power
+  out[16] = $('enable_poweroff_shortcut').checked ? 1 : 0;
+  out[17] = $('enable_touchpad').checked ? 1 : 0;
+  out[18] = parseInt($('poweroff_button').value, 10);
+  out[19] = parseInt($('touchpad_button').value, 10);
+  out[20] = $('battery_color_enable').checked ? 1 : 0;
+  out[21] = $('wake_enable').checked ? 1 : 0;
+
+  // Mutes
+  out[22] = $('auto_haptics_mute_replace').checked ? 1 : 0;
+  out[23] = $('auto_haptics_mute_mix').checked ? 1 : 0;
+
+  return out;
 }
 
 function applyConfig(bytes) {
   const dv  = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  const hg  = dv.getFloat32(0, true);
-  const sv  = dv.getFloat32(4, true);
-  const it  = bytes[8];
-  const did = bytes[9];
-  const led = bytes[10];
-  const pm  = bytes[11];
-  const abl = bytes[12];
-  const cm  = bytes[13];
-  const ahe = bytes[14] ?? 2;
-  const ahg = bytes[15] ?? 100;
-  const ahl = dv.getUint16(16, true) || 80;
-  const eps = bytes[18] ?? 1;
-  const etp = bytes[19] ?? 1;
-  const pob = bytes[20] ?? 3;
-  const tpb = bytes[21] ?? 2;
-  const bce = bytes[22] ?? 1;
-  const wke  = bytes[23] ?? 0;
-  const amr  = bytes[24] ?? 0;
-  const amm  = bytes[25] ?? 0;
+
+  // [0:4] float haptics_gain
+  const hg = dv.getFloat32(0, true);
+
+  // [4] speaker_volume : u8 magnitude [0..127]
+  const speakerVolumeU8 = bytes[4] ?? 0;
+
+  // [7] inactive_time : u8 minutes (0 = disable)
+  const it = bytes[7] ?? 0;
+
+  // [8] disable_pico_led
+  const disablePicoLed = bytes[8] ?? 0;
+
+  // [9] polling_rate_mode
+  const pm = bytes[9] ?? 0;
+
+  // [10] audio_buffer_length
+  const abl = bytes[10] ?? 64;
+
+  // [11] controller_mode
+  const cm = bytes[11] ?? 2;
+
+  // Auto haptics
+  const ahe = bytes[12] ?? 2;
+  const ahg = bytes[13] ?? 100;
+  const ahl = dv.getUint16(14, true) || 80;
+
+  // Input / power
+  const eps = bytes[16] ?? 1;
+  const etp = bytes[17] ?? 1;
+  const pob = bytes[18] ?? 3;
+  const tpb = bytes[19] ?? 2;
+  const bce = bytes[20] ?? 1;
+  const wke = bytes[21] ?? 0;
+
+  // Mutes
+  const amr = bytes[22] ?? 0;
+  const amm = bytes[23] ?? 0;
 
   $('haptics_gain').value         = hg;
   $('val_haptics_gain').value     = hg.toFixed(2);
-  $('speaker_volume').value       = Math.round(sv);
-  $('val_speaker_volume').value   = Math.round(sv);
+
+  // Convert u8 [0..127] -> dB UI [-100..0]
+  const dB = -Math.min(speakerVolumeU8, 100);
+  $('speaker_volume').value       = dB;
+  $('val_speaker_volume').value   = dB;
+
+  inactiveTimeBackup = it === 0 ? 30 : it;
   $('inactive_time').value        = it;
   $('val_inactive_time').value    = it;
-  $('disable_inactive_disconnect').checked = did === 1;
-  $('disable_pico_led').checked            = led === 1;
+  $('disable_inactive_disconnect').checked = it === 0;
+
+  $('disable_pico_led').checked = disablePicoLed === 1;
+
   $('polling_rate_mode').value    = pm;
   $('audio_buffer_length').value  = abl;
   $('val_audio_buffer_length').value = abl;
   $('controller_mode').value      = cm;
+
   $('auto_haptics_enable').value  = ahe;
   $('auto_haptics_gain').value    = ahg;
   $('val_auto_haptics_gain').value = ahg;
+
   $('auto_haptics_lowpass').value = ahl;
   $('val_auto_haptics_lowpass').value = ahl;
+
   $('enable_poweroff_shortcut').checked = eps === 1;
   $('enable_touchpad').checked          = etp === 1;
   $('poweroff_button').value            = pob;
   $('touchpad_button').value            = tpb;
   $('battery_color_enable').checked     = bce === 1;
   $('wake_enable').checked              = wke === 1;
+
   $('auto_haptics_mute_replace').checked = amr === 1;
   $('auto_haptics_mute_mix').checked     = amm === 1;
 
@@ -742,31 +832,47 @@ function applyConfig(bytes) {
 
 function applyDefaults() {
   const c = DEFAULTS;
+
+  inactiveTimeBackup = c.inactive_time;
+
   $('haptics_gain').value         = c.haptics_gain;
   $('val_haptics_gain').value     = c.haptics_gain.toFixed(2);
+
   $('speaker_volume').value       = c.speaker_volume;
   $('val_speaker_volume').value   = c.speaker_volume;
-  $('inactive_time').value        = c.inactive_time;
-  $('val_inactive_time').value    = c.inactive_time;
+
   $('disable_inactive_disconnect').checked = c.disable_inactive_disconnect;
+  const inactiveTime = c.disable_inactive_disconnect ? 0 : c.inactive_time;
+  $('inactive_time').value        = inactiveTime;
+  $('val_inactive_time').value    = inactiveTime;
+
   $('disable_pico_led').checked            = c.disable_pico_led;
   $('polling_rate_mode').value    = c.polling_rate_mode;
+
   $('audio_buffer_length').value  = c.audio_buffer_length;
   $('val_audio_buffer_length').value = c.audio_buffer_length;
+
   $('controller_mode').value      = c.controller_mode;
+
   $('auto_haptics_enable').value  = c.auto_haptics_enable;
   $('auto_haptics_gain').value    = c.auto_haptics_gain;
   $('val_auto_haptics_gain').value = c.auto_haptics_gain;
+
   $('auto_haptics_lowpass').value = c.auto_haptics_lowpass;
   $('val_auto_haptics_lowpass').value = c.auto_haptics_lowpass;
+
   $('enable_poweroff_shortcut').checked = c.enable_poweroff_shortcut;
   $('enable_touchpad').checked          = c.enable_touchpad;
+
   $('poweroff_button').value            = c.poweroff_button;
   $('touchpad_button').value            = c.touchpad_button;
+
   $('battery_color_enable').checked     = c.battery_color_enable;
   $('wake_enable').checked              = c.wake_enable;
+
   $('auto_haptics_mute_replace').checked = c.auto_haptics_mute_replace;
   $('auto_haptics_mute_mix').checked     = c.auto_haptics_mute_mix;
+
   checkReconnectNeeded();
 }
 
@@ -774,25 +880,48 @@ function applyDefaults() {
 async function readConfig() {
   if (!device) return;
   try {
+    $('btnSave').disabled = true;
+
     const report = await device.receiveFeatureReport(0xF7);
     const bytes  = new Uint8Array(report.buffer, 1);
+
     if (bytes.length < CONFIG_MIN_SIZE) {
-      toast('Config too short — flash the latest firmware first.', false); return;
+      lastConfigBytes = null;
+      toast('Config too short — flash the latest firmware first.', false);
+      return;
     }
-    applyConfig(bytes);
-    toast('Config loaded from device.');
-  } catch (e) { toast(`Read failed: ${e.message}`, false); }
+
+    lastConfigBytes = bytes.slice(0, CONFIG_SIZE);
+    applyConfig(lastConfigBytes);
+
+    // On n’autorise l’écriture que si on a la taille complète,
+    // pour préserver les champs non exposés.
+    $('btnSave').disabled = bytes.length < CONFIG_SIZE;
+    toast(
+      bytes.length < CONFIG_SIZE
+        ? 'Config read (full config needed to save safely).'
+        : 'Config loaded from device.'
+    );
+  } catch (e) {
+    lastConfigBytes = null;
+    $('btnSave').disabled = true;
+    toast(`Read failed: ${e.message}`, false);
+  }
 }
 
 async function saveConfig() {
   if (!device) return;
   try {
     const cfg = packConfig();
+    if (!cfg) return;
+
     await device.sendFeatureReport(0xF6, picoReport(0x01, cfg));
     await device.sendFeatureReport(0xF6, picoReport(0x02));
+
     savedPollingMode    = $('polling_rate_mode').value;
     savedControllerMode = $('controller_mode').value;
     $('reconnectWarning').style.display = 'none';
+
     toast('Configuration saved to flash!');
     updateState('Config saved', 'Settings written to device flash.');
   } catch (e) { toast(`Save failed: ${e.message}`, false); }
